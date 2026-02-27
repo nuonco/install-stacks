@@ -29,10 +29,7 @@ resource "null_resource" "phone_home" {
           "public_subnet_name": "${google_compute_subnetwork.public.name}",
           "private_subnet_name": "${google_compute_subnetwork.private.name}",
           "runner_subnet_name": "${google_compute_subnetwork.runner.name}",
-          "runner_service_account_email": "${google_service_account.runner.email}",
-          "provision_sa_email": "${google_service_account.provision.email}",
-          "maintenance_sa_email": "${google_service_account.maintenance.email}",
-          "deprovision_sa_email": "${google_service_account.deprovision.email}"${var.has_break_glass ? ",\n          \"break_glass_sa_email\": \"${google_service_account.break_glass[0].email}\"" : ""}
+          "runner_service_account_email": "${google_service_account.runner.email}"${local.has_provision ? ",\n          \"provision_sa_email\": \"${google_service_account.provision[0].email}\"" : ""}${local.has_maintenance ? ",\n          \"maintenance_sa_email\": \"${google_service_account.maintenance[0].email}\"" : ""}${local.has_deprovision ? ",\n          \"deprovision_sa_email\": \"${google_service_account.deprovision[0].email}\"" : ""}${var.has_break_glass ? ",\n          \"break_glass_sa_email\": \"${google_service_account.break_glass[0].email}\"" : ""}
         }'
     EOT
   }
