@@ -44,6 +44,40 @@ variable "phone_home_url" {
 }
 
 ##
+## IAM permissions (provided via tfvars file)
+##
+
+variable "provision_permissions" {
+  type        = list(string)
+  default     = []
+  description = "GCP IAM permissions for the provision service account custom role."
+}
+
+variable "maintenance_permissions" {
+  type        = list(string)
+  default     = []
+  description = "GCP IAM permissions for the maintenance service account custom role."
+}
+
+variable "deprovision_permissions" {
+  type        = list(string)
+  default     = []
+  description = "GCP IAM permissions for the deprovision service account custom role."
+}
+
+variable "has_break_glass" {
+  type        = bool
+  default     = false
+  description = "Whether to create break-glass service account and IAM resources."
+}
+
+variable "break_glass_permissions" {
+  type        = list(string)
+  default     = []
+  description = "GCP IAM permissions for the break-glass service account custom role."
+}
+
+##
 ## Customer-supplied variables (prompted at apply time)
 ##
 

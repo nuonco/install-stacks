@@ -29,3 +29,19 @@ output "runner_subnet_name" {
 output "runner_service_account_email" {
   value = google_service_account.runner.email
 }
+
+output "provision_sa_email" {
+  value = google_service_account.provision.email
+}
+
+output "maintenance_sa_email" {
+  value = google_service_account.maintenance.email
+}
+
+output "deprovision_sa_email" {
+  value = google_service_account.deprovision.email
+}
+
+output "break_glass_sa_email" {
+  value = var.has_break_glass ? google_service_account.break_glass[0].email : null
+}

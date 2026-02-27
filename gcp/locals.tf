@@ -1,6 +1,7 @@
 locals {
-  prefix = var.nuon_install_id
-  region = var.gcp_region
+  prefix         = var.nuon_install_id
+  region         = var.gcp_region
+  role_id_prefix = replace(var.nuon_install_id, "-", "_")
 
   labels = {
     "nuon-install-id" = var.nuon_install_id
