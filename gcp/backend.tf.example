@@ -1,0 +1,9 @@
+# Uncomment and configure the backend block below to store Terraform state
+# in a GCS bucket. Replace the placeholder values with your own.
+#
+# terraform {
+#   backend "gcs" {
+#     bucket = "my-terraform-state-bucket"
+#     prefix = "nuon/install"
+#   }
+# }
