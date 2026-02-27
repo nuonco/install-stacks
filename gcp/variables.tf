@@ -53,16 +53,34 @@ variable "provision_permissions" {
   description = "GCP IAM permissions for the provision service account custom role."
 }
 
+variable "provision_predefined_role" {
+  type        = string
+  default     = ""
+  description = "GCP predefined role to bind to the provision service account (e.g. roles/editor)."
+}
+
 variable "maintenance_permissions" {
   type        = list(string)
   default     = []
   description = "GCP IAM permissions for the maintenance service account custom role."
 }
 
+variable "maintenance_predefined_role" {
+  type        = string
+  default     = ""
+  description = "GCP predefined role to bind to the maintenance service account (e.g. roles/editor)."
+}
+
 variable "deprovision_permissions" {
   type        = list(string)
   default     = []
   description = "GCP IAM permissions for the deprovision service account custom role."
+}
+
+variable "deprovision_predefined_role" {
+  type        = string
+  default     = ""
+  description = "GCP predefined role to bind to the deprovision service account (e.g. roles/editor)."
 }
 
 variable "has_break_glass" {
@@ -75,6 +93,12 @@ variable "break_glass_permissions" {
   type        = list(string)
   default     = []
   description = "GCP IAM permissions for the break-glass service account custom role."
+}
+
+variable "break_glass_predefined_role" {
+  type        = string
+  default     = ""
+  description = "GCP predefined role to bind to the break-glass service account (e.g. roles/editor)."
 }
 
 ##

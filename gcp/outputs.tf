@@ -31,15 +31,15 @@ output "runner_service_account_email" {
 }
 
 output "provision_sa_email" {
-  value = google_service_account.provision.email
+  value = local.has_provision ? google_service_account.provision[0].email : null
 }
 
 output "maintenance_sa_email" {
-  value = google_service_account.maintenance.email
+  value = local.has_maintenance ? google_service_account.maintenance[0].email : null
 }
 
 output "deprovision_sa_email" {
-  value = google_service_account.deprovision.email
+  value = local.has_deprovision ? google_service_account.deprovision[0].email : null
 }
 
 output "break_glass_sa_email" {
