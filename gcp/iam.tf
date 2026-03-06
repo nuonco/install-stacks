@@ -48,7 +48,6 @@ resource "google_project_iam_member" "runner_security_admin" {
 ###############################################################################
 
 resource "google_service_account" "provision" {
-  count        = local.has_provision ? 1 : 0
   account_id   = "${substr(local.prefix, 0, 20)}-prov"
   display_name = "Nuon provision for ${local.prefix}"
 }
@@ -64,19 +63,18 @@ resource "google_project_iam_member" "provision_custom_role" {
   count   = local.has_provision_custom ? 1 : 0
   project = var.gcp_project_id
   role    = google_project_iam_custom_role.provision[0].id
-  member  = "serviceAccount:${google_service_account.provision[0].email}"
+  member  = "serviceAccount:${google_service_account.provision.email}"
 }
 
 resource "google_project_iam_member" "provision_predefined_role" {
   count   = var.provision_predefined_role != "" ? 1 : 0
   project = var.gcp_project_id
   role    = var.provision_predefined_role
-  member  = "serviceAccount:${google_service_account.provision[0].email}"
+  member  = "serviceAccount:${google_service_account.provision.email}"
 }
 
 resource "google_service_account_iam_member" "provision_token_creator" {
-  count              = local.has_provision ? 1 : 0
-  service_account_id = google_service_account.provision[0].name
+  service_account_id = google_service_account.provision.name
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "serviceAccount:${google_service_account.runner.email}"
 }
@@ -86,7 +84,6 @@ resource "google_service_account_iam_member" "provision_token_creator" {
 ###############################################################################
 
 resource "google_service_account" "maintenance" {
-  count        = local.has_maintenance ? 1 : 0
   account_id   = "${substr(local.prefix, 0, 20)}-maint"
   display_name = "Nuon maintenance for ${local.prefix}"
 }
@@ -102,19 +99,18 @@ resource "google_project_iam_member" "maintenance_custom_role" {
   count   = local.has_maintenance_custom ? 1 : 0
   project = var.gcp_project_id
   role    = google_project_iam_custom_role.maintenance[0].id
-  member  = "serviceAccount:${google_service_account.maintenance[0].email}"
+  member  = "serviceAccount:${google_service_account.maintenance.email}"
 }
 
 resource "google_project_iam_member" "maintenance_predefined_role" {
   count   = var.maintenance_predefined_role != "" ? 1 : 0
   project = var.gcp_project_id
   role    = var.maintenance_predefined_role
-  member  = "serviceAccount:${google_service_account.maintenance[0].email}"
+  member  = "serviceAccount:${google_service_account.maintenance.email}"
 }
 
 resource "google_service_account_iam_member" "maintenance_token_creator" {
-  count              = local.has_maintenance ? 1 : 0
-  service_account_id = google_service_account.maintenance[0].name
+  service_account_id = google_service_account.maintenance.name
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "serviceAccount:${google_service_account.runner.email}"
 }
@@ -124,7 +120,6 @@ resource "google_service_account_iam_member" "maintenance_token_creator" {
 ###############################################################################
 
 resource "google_service_account" "deprovision" {
-  count        = local.has_deprovision ? 1 : 0
   account_id   = "${substr(local.prefix, 0, 20)}-dep"
   display_name = "Nuon deprovision for ${local.prefix}"
 }
@@ -140,19 +135,18 @@ resource "google_project_iam_member" "deprovision_custom_role" {
   count   = local.has_deprovision_custom ? 1 : 0
   project = var.gcp_project_id
   role    = google_project_iam_custom_role.deprovision[0].id
-  member  = "serviceAccount:${google_service_account.deprovision[0].email}"
+  member  = "serviceAccount:${google_service_account.deprovision.email}"
 }
 
 resource "google_project_iam_member" "deprovision_predefined_role" {
   count   = var.deprovision_predefined_role != "" ? 1 : 0
   project = var.gcp_project_id
   role    = var.deprovision_predefined_role
-  member  = "serviceAccount:${google_service_account.deprovision[0].email}"
+  member  = "serviceAccount:${google_service_account.deprovision.email}"
 }
 
 resource "google_service_account_iam_member" "deprovision_token_creator" {
-  count              = local.has_deprovision ? 1 : 0
-  service_account_id = google_service_account.deprovision[0].name
+  service_account_id = google_service_account.deprovision.name
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "serviceAccount:${google_service_account.runner.email}"
 }
