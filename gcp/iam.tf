@@ -37,6 +37,18 @@ resource "google_project_iam_member" "runner_sa_user" {
   member  = "serviceAccount:${google_service_account.runner.email}"
 }
 
+resource "google_project_iam_member" "runner_sa_admin" {
+  project = var.gcp_project_id
+  role    = "roles/iam.serviceAccountAdmin"
+  member  = "serviceAccount:${google_service_account.runner.email}"
+}
+
+resource "google_project_iam_member" "runner_role_admin" {
+  project = var.gcp_project_id
+  role    = "roles/iam.roleAdmin"
+  member  = "serviceAccount:${google_service_account.runner.email}"
+}
+
 resource "google_project_iam_member" "runner_security_admin" {
   project = var.gcp_project_id
   role    = "roles/compute.securityAdmin"
