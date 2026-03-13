@@ -43,6 +43,12 @@ variable "phone_home_url" {
   description = "The URL the module calls to report provisioning results back to Nuon."
 }
 
+variable "install_inputs" {
+  type        = map(string)
+  default     = {}
+  description = "Customer-provided install inputs. Keys are input names, values are provided at apply time."
+}
+
 ##
 ## IAM permissions (provided via tfvars file)
 ##
