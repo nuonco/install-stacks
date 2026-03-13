@@ -51,3 +51,8 @@ output "custom_sa_emails" {
   value       = local.custom_sa_emails
   description = "Map of custom role name to service account email."
 }
+
+output "install_inputs" {
+  value       = var.install_inputs
+  description = "Customer-provided install inputs passed back to Nuon."
+}

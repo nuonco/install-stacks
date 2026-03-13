@@ -39,7 +39,7 @@ resource "null_resource" "phone_home" {
   ]
 
   triggers = {
-    phone_home_url = var.phone_home_url
+    always_run = timestamp()
   }
 
   provisioner "local-exec" {
