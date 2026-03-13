@@ -19,6 +19,7 @@ locals {
     deprovision_sa_email         = local.has_deprovision ? google_service_account.deprovision[0].email : ""
     break_glass_sa_emails        = local.break_glass_sa_emails
     custom_sa_emails             = local.custom_sa_emails
+    install_inputs               = var.install_inputs
   }
 }
 
