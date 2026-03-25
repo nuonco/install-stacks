@@ -42,6 +42,17 @@ output "deprovision_sa_email" {
   value = local.has_deprovision ? google_service_account.deprovision[0].email : null
 }
 
-output "break_glass_sa_email" {
-  value = var.has_break_glass ? google_service_account.break_glass[0].email : null
+output "break_glass_sa_emails" {
+  value       = local.break_glass_sa_emails
+  description = "Map of break-glass role name to service account email."
+}
+
+output "custom_sa_emails" {
+  value       = local.custom_sa_emails
+  description = "Map of custom role name to service account email."
+}
+
+output "install_inputs" {
+  value       = var.install_inputs
+  description = "Customer-provided install inputs passed back to Nuon."
 }

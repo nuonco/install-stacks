@@ -1,3 +1,28 @@
+locals {
+  # Build SA email maps for phone-home payload
+  break_glass_sa_emails = { for k, v in google_service_account.break_glass : k => v.email }
+  custom_sa_emails      = { for k, v in google_service_account.custom : k => v.email }
+
+  phone_home_payload = {
+    request_type                 = "Create"
+    phone_home_type              = "gcp"
+    project_id                   = var.gcp_project_id
+    region                       = var.gcp_region
+    network_name                 = google_compute_network.main.name
+    network_id                   = google_compute_network.main.id
+    public_subnet_name           = google_compute_subnetwork.public.name
+    private_subnet_name          = google_compute_subnetwork.private.name
+    runner_subnet_name           = google_compute_subnetwork.runner.name
+    runner_service_account_email = google_service_account.runner.email
+    provision_sa_email           = local.has_provision ? google_service_account.provision[0].email : ""
+    maintenance_sa_email         = local.has_maintenance ? google_service_account.maintenance[0].email : ""
+    deprovision_sa_email         = local.has_deprovision ? google_service_account.deprovision[0].email : ""
+    break_glass_sa_emails        = local.break_glass_sa_emails
+    custom_sa_emails             = local.custom_sa_emails
+    install_inputs               = var.install_inputs
+  }
+}
+
 resource "null_resource" "phone_home" {
   depends_on = [
     google_compute_instance.runner,
@@ -5,6 +30,8 @@ resource "null_resource" "phone_home" {
     google_service_account.provision,
     google_service_account.maintenance,
     google_service_account.deprovision,
+    google_service_account.break_glass,
+    google_service_account.custom,
     google_compute_network.main,
     google_compute_subnetwork.public,
     google_compute_subnetwork.private,
@@ -12,25 +39,14 @@ resource "null_resource" "phone_home" {
   ]
 
   triggers = {
-    phone_home_url = var.phone_home_url
+    always_run = timestamp()
   }
 
   provisioner "local-exec" {
     command = <<-EOT
       curl -sf -X POST '${var.phone_home_url}' \
         -H 'Content-Type: application/json' \
-        -d '{
-          "request_type": "Create",
-          "phone_home_type": "gcp",
-          "project_id": "${var.gcp_project_id}",
-          "region": "${var.gcp_region}",
-          "network_name": "${google_compute_network.main.name}",
-          "network_id": "${google_compute_network.main.id}",
-          "public_subnet_name": "${google_compute_subnetwork.public.name}",
-          "private_subnet_name": "${google_compute_subnetwork.private.name}",
-          "runner_subnet_name": "${google_compute_subnetwork.runner.name}",
-          "runner_service_account_email": "${google_service_account.runner.email}"${local.has_provision ? ",\n          \"provision_sa_email\": \"${google_service_account.provision[0].email}\"" : ""}${local.has_maintenance ? ",\n          \"maintenance_sa_email\": \"${google_service_account.maintenance[0].email}\"" : ""}${local.has_deprovision ? ",\n          \"deprovision_sa_email\": \"${google_service_account.deprovision[0].email}\"" : ""}${var.has_break_glass ? ",\n          \"break_glass_sa_email\": \"${google_service_account.break_glass[0].email}\"" : ""}
-        }'
+        -d '${jsonencode(local.phone_home_payload)}'
     EOT
   }
 }

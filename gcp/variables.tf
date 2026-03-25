@@ -43,6 +43,12 @@ variable "phone_home_url" {
   description = "The URL the module calls to report provisioning results back to Nuon."
 }
 
+variable "install_inputs" {
+  type        = map(string)
+  default     = {}
+  description = "Customer-provided install inputs. Keys are input names, values are provided at apply time."
+}
+
 ##
 ## IAM permissions (provided via tfvars file)
 ##
@@ -83,22 +89,24 @@ variable "deprovision_predefined_role" {
   description = "GCP predefined role to bind to the deprovision service account (e.g. roles/editor)."
 }
 
-variable "has_break_glass" {
-  type        = bool
-  default     = false
-  description = "Whether to create break-glass service account and IAM resources."
+variable "break_glass_roles" {
+  type = map(object({
+    permissions     = list(string)
+    predefined_role = string
+    enabled         = bool
+  }))
+  default     = {}
+  description = "Break-glass roles. Each key is the role name. Disabled by default; only created when enabled=true."
 }
 
-variable "break_glass_permissions" {
-  type        = list(string)
-  default     = []
-  description = "GCP IAM permissions for the break-glass service account custom role."
-}
-
-variable "break_glass_predefined_role" {
-  type        = string
-  default     = ""
-  description = "GCP predefined role to bind to the break-glass service account (e.g. roles/editor)."
+variable "custom_roles" {
+  type = map(object({
+    permissions     = list(string)
+    predefined_role = string
+    enabled         = bool
+  }))
+  default     = {}
+  description = "Custom roles for app operations. Each key is the role name. Enabled by default."
 }
 
 ##
