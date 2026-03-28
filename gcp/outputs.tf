@@ -56,3 +56,8 @@ output "install_inputs" {
   value       = var.install_inputs
   description = "Customer-provided install inputs passed back to Nuon."
 }
+
+output "secret_names" {
+  value       = local.all_secret_names
+  description = "Map of {name}_secret_name to fully qualified GCP Secret Manager resource names."
+}
