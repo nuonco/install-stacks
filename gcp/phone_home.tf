@@ -3,7 +3,7 @@ locals {
   break_glass_sa_emails = { for k, v in google_service_account.break_glass : k => v.email }
   custom_sa_emails      = { for k, v in google_service_account.custom : k => v.email }
 
-  phone_home_payload = {
+  phone_home_payload = merge({
     request_type                 = "Create"
     phone_home_type              = "gcp"
     project_id                   = var.gcp_project_id
@@ -20,7 +20,7 @@ locals {
     break_glass_sa_emails        = local.break_glass_sa_emails
     custom_sa_emails             = local.custom_sa_emails
     install_inputs               = var.install_inputs
-  }
+  }, local.all_secret_names)
 }
 
 resource "null_resource" "phone_home" {
@@ -36,6 +36,8 @@ resource "null_resource" "phone_home" {
     google_compute_subnetwork.public,
     google_compute_subnetwork.private,
     google_compute_subnetwork.runner,
+    google_secret_manager_secret_version.auto_generate,
+    google_secret_manager_secret_version.customer,
   ]
 
   triggers = {

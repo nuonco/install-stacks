@@ -110,6 +110,27 @@ variable "custom_roles" {
 }
 
 ##
+## Secrets (provided via tfvars file)
+##
+
+variable "auto_generate_secrets" {
+  type        = list(string)
+  default     = []
+  description = "Names of secrets to auto-generate. Random values are created and stored in Secret Manager."
+}
+
+variable "secrets" {
+  type = map(object({
+    description = string
+    required    = bool
+    value       = string
+  }))
+  default     = {}
+  sensitive   = true
+  description = "Customer-provided secrets. Keys are secret names, values include the secret value to store in Secret Manager."
+}
+
+##
 ## Customer-supplied variables (prompted at apply time)
 ##
 
