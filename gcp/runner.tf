@@ -36,4 +36,14 @@ resource "google_compute_instance" "runner" {
       curl -fsSL ${var.runner_init_script_url} | bash
     EOT
   }
+
+  lifecycle {
+    replace_triggered_by = [null_resource.runner_script_trigger]
+  }
+}
+
+resource "null_resource" "runner_script_trigger" {
+  triggers = {
+    init_script_url = var.runner_init_script_url
+  }
 }
