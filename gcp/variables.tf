@@ -24,8 +24,9 @@ variable "runner_api_url" {
 
 variable "runner_api_token" {
   type        = string
+  default     = ""
   sensitive   = true
-  description = "The API token used by the runner to authenticate with the Nuon runner API."
+  description = "The API token used by the runner to authenticate with the Nuon runner API. Not needed when using init-mng-v2 (runner fetches its own token)."
 }
 
 variable "runner_id" {
