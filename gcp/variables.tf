@@ -131,6 +131,18 @@ variable "secrets" {
   description = "Customer-provided secrets. Keys are secret names, values include the secret value to store in Secret Manager."
 }
 
+variable "has_gke_node_pool" {
+  type        = bool
+  default     = true
+  description = "Whether to create a least-privilege service account for GKE node pools."
+}
+
+variable "gke_node_pool_sa_email" {
+  type        = string
+  default     = ""
+  description = "Email of an existing GKE node pool service account. If provided, skips creating one."
+}
+
 ##
 ## Customer-supplied variables (prompted at apply time)
 ##

@@ -14,6 +14,44 @@ resource "google_project_iam_member" "runner_owner" {
 }
 
 ###############################################################################
+# GKE node pool service account — least-privilege SA for GKE nodes
+###############################################################################
+
+resource "google_service_account" "gke_nodes" {
+  count        = local.create_gke_node_pool_sa ? 1 : 0
+  account_id   = "${substr(local.prefix, 0, 20)}-gke-nodes"
+  display_name = "GKE node pool SA for ${local.prefix}"
+}
+
+resource "google_project_iam_member" "gke_nodes_log_writer" {
+  count   = local.create_gke_node_pool_sa ? 1 : 0
+  project = var.gcp_project_id
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.gke_nodes[0].email}"
+}
+
+resource "google_project_iam_member" "gke_nodes_metric_writer" {
+  count   = local.create_gke_node_pool_sa ? 1 : 0
+  project = var.gcp_project_id
+  role    = "roles/monitoring.metricWriter"
+  member  = "serviceAccount:${google_service_account.gke_nodes[0].email}"
+}
+
+resource "google_project_iam_member" "gke_nodes_monitoring_viewer" {
+  count   = local.create_gke_node_pool_sa ? 1 : 0
+  project = var.gcp_project_id
+  role    = "roles/monitoring.viewer"
+  member  = "serviceAccount:${google_service_account.gke_nodes[0].email}"
+}
+
+resource "google_project_iam_member" "gke_nodes_artifact_reader" {
+  count   = local.create_gke_node_pool_sa ? 1 : 0
+  project = var.gcp_project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${google_service_account.gke_nodes[0].email}"
+}
+
+###############################################################################
 # Provision service account + role
 ###############################################################################
 
