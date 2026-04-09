@@ -30,6 +30,12 @@ output "runner_service_account_email" {
   value = google_service_account.runner.email
 }
 
+output "gke_node_pool_sa_email" {
+  value = var.gke_node_pool_sa_email != "" ? var.gke_node_pool_sa_email : (
+    local.create_gke_node_pool_sa ? google_service_account.gke_nodes[0].email : null
+  )
+}
+
 output "provision_sa_email" {
   value = local.has_provision ? google_service_account.provision[0].email : null
 }

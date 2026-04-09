@@ -27,6 +27,8 @@ locals {
   }
   all_secret_names = merge(local.auto_generate_secret_names, local.customer_secret_names)
 
+  create_gke_node_pool_sa = var.has_gke_node_pool && var.gke_node_pool_sa_email == ""
+
   labels = {
     "nuon-install-id" = var.nuon_install_id
     "nuon-org-id"     = var.nuon_org_id

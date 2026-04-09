@@ -19,7 +19,10 @@ locals {
     deprovision_sa_email         = local.has_deprovision ? google_service_account.deprovision[0].email : ""
     break_glass_sa_emails        = local.break_glass_sa_emails
     custom_sa_emails             = local.custom_sa_emails
-    install_inputs               = var.install_inputs
+    gke_node_pool_sa_email = var.gke_node_pool_sa_email != "" ? var.gke_node_pool_sa_email : (
+      local.create_gke_node_pool_sa ? google_service_account.gke_nodes[0].email : ""
+    )
+    install_inputs = var.install_inputs
   }, local.all_secret_names)
 }
 
@@ -32,6 +35,7 @@ resource "null_resource" "phone_home" {
     google_service_account.deprovision,
     google_service_account.break_glass,
     google_service_account.custom,
+    google_service_account.gke_nodes,
     google_compute_network.main,
     google_compute_subnetwork.public,
     google_compute_subnetwork.private,
