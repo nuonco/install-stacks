@@ -1,0 +1,341 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "nuonInstallID": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "vnetCIDR": {
+      "type": "string",
+      "defaultValue": "10.128.0.0/16"
+    },
+    "publicSubnet1CIDR": {
+      "type": "string",
+      "defaultValue": "10.128.0.0/26"
+    },
+    "publicSubnet2CIDR": {
+      "type": "string",
+      "defaultValue": "10.128.0.64/26"
+    },
+    "publicSubnet3CIDR": {
+      "type": "string",
+      "defaultValue": "10.128.0.128/26"
+    },
+    "runnerSubnetCIDR": {
+      "type": "string",
+      "defaultValue": "10.128.128.0/24"
+    },
+    "privateSubnet1CIDR": {
+      "type": "string",
+      "defaultValue": "10.128.130.0/24"
+    },
+    "privateSubnet2CIDR": {
+      "type": "string",
+      "defaultValue": "10.128.132.0/24"
+    },
+    "privateSubnet3CIDR": {
+      "type": "string",
+      "defaultValue": "10.128.134.0/24"
+    }
+  },
+  "variables": {
+    "createPublicSubnet2": "[not(empty(parameters('publicSubnet2CIDR')))]",
+    "createPublicSubnet3": "[not(empty(parameters('publicSubnet3CIDR')))]",
+    "createPrivateSubnet2": "[not(empty(parameters('privateSubnet2CIDR')))]",
+    "createPrivateSubnet3": "[not(empty(parameters('privateSubnet3CIDR')))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2023-04-01",
+      "name": "[format('{0}-natgw-pip', parameters('nuonInstallID'))]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static"
+      }
+    },
+    {
+      "type": "Microsoft.Network/natGateways",
+      "apiVersion": "2023-04-01",
+      "name": "[format('{0}-natgw', parameters('nuonInstallID'))]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIpAddresses": [
+          {
+            "id": "[resourceId('Microsoft.Network/publicIPAddresses', format('{0}-natgw-pip', parameters('nuonInstallID')))]"
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', format('{0}-natgw-pip', parameters('nuonInstallID')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2023-04-01",
+      "name": "[format('{0}-public-nsg', parameters('nuonInstallID'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-All-Inbound",
+            "properties": {
+              "description": "Allow all inbound traffic from any source",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2023-04-01",
+      "name": "[format('{0}-private-nsg', parameters('nuonInstallID'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": []
+      }
+    },
+    {
+      "type": "Microsoft.Network/routeTables",
+      "apiVersion": "2023-04-01",
+      "name": "[format('{0}-private-routetable', parameters('nuonInstallID'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "disableBgpRoutePropagation": false
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2023-04-01",
+      "name": "[format('{0}-vnet', parameters('nuonInstallID'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('vnetCIDR')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[format('{0}-public-subnet-zone1', parameters('nuonInstallID'))]",
+            "properties": {
+              "addressPrefix": "[parameters('publicSubnet1CIDR')]",
+              "privateEndpointNetworkPolicies": "Disabled",
+              "privateLinkServiceNetworkPolicies": "Enabled",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-public-nsg', parameters('nuonInstallID')))]"
+              },
+              "natGateway": {
+                "id": "[resourceId('Microsoft.Network/natGateways', format('{0}-natgw', parameters('nuonInstallID')))]"
+              }
+            }
+          },
+          {
+            "name": "[format('{0}-public-subnet-zone2', parameters('nuonInstallID'))]",
+            "properties": {
+              "addressPrefix": "[parameters('publicSubnet2CIDR')]",
+              "privateEndpointNetworkPolicies": "Disabled",
+              "privateLinkServiceNetworkPolicies": "Enabled",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-public-nsg', parameters('nuonInstallID')))]"
+              },
+              "natGateway": {
+                "id": "[resourceId('Microsoft.Network/natGateways', format('{0}-natgw', parameters('nuonInstallID')))]"
+              }
+            }
+          },
+          {
+            "name": "[format('{0}-public-subnet-zone3', parameters('nuonInstallID'))]",
+            "properties": {
+              "addressPrefix": "[parameters('publicSubnet3CIDR')]",
+              "privateEndpointNetworkPolicies": "Disabled",
+              "privateLinkServiceNetworkPolicies": "Enabled",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-public-nsg', parameters('nuonInstallID')))]"
+              },
+              "natGateway": {
+                "id": "[resourceId('Microsoft.Network/natGateways', format('{0}-natgw', parameters('nuonInstallID')))]"
+              }
+            }
+          },
+          {
+            "name": "[format('{0}-private-runner-subnet', parameters('nuonInstallID'))]",
+            "properties": {
+              "addressPrefix": "[parameters('runnerSubnetCIDR')]",
+              "privateEndpointNetworkPolicies": "Disabled",
+              "privateLinkServiceNetworkPolicies": "Enabled",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-private-nsg', parameters('nuonInstallID')))]"
+              },
+              "natGateway": {
+                "id": "[resourceId('Microsoft.Network/natGateways', format('{0}-natgw', parameters('nuonInstallID')))]"
+              },
+              "serviceEndpoints": [
+                { "service": "Microsoft.KeyVault" },
+                { "service": "Microsoft.ContainerRegistry" }
+              ]
+            }
+          },
+          {
+            "name": "[format('{0}-private-subnet-zone1', parameters('nuonInstallID'))]",
+            "properties": {
+              "addressPrefix": "[parameters('privateSubnet1CIDR')]",
+              "privateEndpointNetworkPolicies": "Disabled",
+              "privateLinkServiceNetworkPolicies": "Enabled",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-private-nsg', parameters('nuonInstallID')))]"
+              },
+              "natGateway": {
+                "id": "[resourceId('Microsoft.Network/natGateways', format('{0}-natgw', parameters('nuonInstallID')))]"
+              },
+              "serviceEndpoints": [
+                { "service": "Microsoft.KeyVault" },
+                { "service": "Microsoft.ContainerRegistry" }
+              ]
+            }
+          },
+          {
+            "name": "[format('{0}-private-subnet-zone2', parameters('nuonInstallID'))]",
+            "properties": {
+              "addressPrefix": "[parameters('privateSubnet2CIDR')]",
+              "privateEndpointNetworkPolicies": "Disabled",
+              "privateLinkServiceNetworkPolicies": "Enabled",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-private-nsg', parameters('nuonInstallID')))]"
+              },
+              "natGateway": {
+                "id": "[resourceId('Microsoft.Network/natGateways', format('{0}-natgw', parameters('nuonInstallID')))]"
+              },
+              "serviceEndpoints": [
+                { "service": "Microsoft.KeyVault" },
+                { "service": "Microsoft.ContainerRegistry" }
+              ]
+            }
+          },
+          {
+            "name": "[format('{0}-private-subnet-zone3', parameters('nuonInstallID'))]",
+            "properties": {
+              "addressPrefix": "[parameters('privateSubnet3CIDR')]",
+              "privateEndpointNetworkPolicies": "Disabled",
+              "privateLinkServiceNetworkPolicies": "Enabled",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-private-nsg', parameters('nuonInstallID')))]"
+              },
+              "natGateway": {
+                "id": "[resourceId('Microsoft.Network/natGateways', format('{0}-natgw', parameters('nuonInstallID')))]"
+              },
+              "serviceEndpoints": [
+                { "service": "Microsoft.KeyVault" },
+                { "service": "Microsoft.ContainerRegistry" }
+              ]
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-public-nsg', parameters('nuonInstallID')))]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-private-nsg', parameters('nuonInstallID')))]",
+        "[resourceId('Microsoft.Network/natGateways', format('{0}-natgw', parameters('nuonInstallID')))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "vnetId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('nuonInstallID')))]"
+    },
+    "vnetName": {
+      "type": "string",
+      "value": "[format('{0}-vnet', parameters('nuonInstallID'))]"
+    },
+    "runnerSubnetId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-private-runner-subnet', parameters('nuonInstallID')))]"
+    },
+    "runnerSubnetName": {
+      "type": "string",
+      "value": "[format('{0}-private-runner-subnet', parameters('nuonInstallID'))]"
+    },
+    "publicSubnet1Id": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-public-subnet-zone1', parameters('nuonInstallID')))]"
+    },
+    "publicSubnet1Name": {
+      "type": "string",
+      "value": "[format('{0}-public-subnet-zone1', parameters('nuonInstallID'))]"
+    },
+    "publicSubnet2Id": {
+      "type": "string",
+      "value": "[if(variables('createPublicSubnet2'), resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-public-subnet-zone2', parameters('nuonInstallID'))), '')]"
+    },
+    "publicSubnet2Name": {
+      "type": "string",
+      "value": "[if(variables('createPublicSubnet2'), format('{0}-public-subnet-zone2', parameters('nuonInstallID')), '')]"
+    },
+    "publicSubnet3Id": {
+      "type": "string",
+      "value": "[if(variables('createPublicSubnet3'), resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-public-subnet-zone3', parameters('nuonInstallID'))), '')]"
+    },
+    "publicSubnet3Name": {
+      "type": "string",
+      "value": "[if(variables('createPublicSubnet3'), format('{0}-public-subnet-zone3', parameters('nuonInstallID')), '')]"
+    },
+    "privateSubnet1Id": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-private-subnet-zone1', parameters('nuonInstallID')))]"
+    },
+    "privateSubnet1Name": {
+      "type": "string",
+      "value": "[format('{0}-private-subnet-zone1', parameters('nuonInstallID'))]"
+    },
+    "privateSubnet2Id": {
+      "type": "string",
+      "value": "[if(variables('createPrivateSubnet2'), resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-private-subnet-zone2', parameters('nuonInstallID'))), '')]"
+    },
+    "privateSubnet2Name": {
+      "type": "string",
+      "value": "[if(variables('createPrivateSubnet2'), format('{0}-private-subnet-zone2', parameters('nuonInstallID')), '')]"
+    },
+    "privateSubnet3Id": {
+      "type": "string",
+      "value": "[if(variables('createPrivateSubnet3'), resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-private-subnet-zone3', parameters('nuonInstallID'))), '')]"
+    },
+    "privateSubnet3Name": {
+      "type": "string",
+      "value": "[if(variables('createPrivateSubnet3'), format('{0}-private-subnet-zone3', parameters('nuonInstallID')), '')]"
+    },
+    "publicSubnetIds": {
+      "type": "string",
+      "value": "[join(filter(createArray(resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-public-subnet-zone1', parameters('nuonInstallID'))), if(variables('createPublicSubnet2'), resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-public-subnet-zone2', parameters('nuonInstallID'))), ''), if(variables('createPublicSubnet3'), resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-public-subnet-zone3', parameters('nuonInstallID'))), '')), lambda('x', not(empty(lambdaVariables('x'))))), ',')]"
+    },
+    "publicSubnetNames": {
+      "type": "string",
+      "value": "[join(filter(createArray(format('{0}-public-subnet-zone1', parameters('nuonInstallID')), if(variables('createPublicSubnet2'), format('{0}-public-subnet-zone2', parameters('nuonInstallID')), ''), if(variables('createPublicSubnet3'), format('{0}-public-subnet-zone3', parameters('nuonInstallID')), '')), lambda('x', not(empty(lambdaVariables('x'))))), ',')]"
+    },
+    "privateSubnetIds": {
+      "type": "string",
+      "value": "[join(filter(createArray(resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-private-subnet-zone1', parameters('nuonInstallID'))), if(variables('createPrivateSubnet2'), resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-private-subnet-zone2', parameters('nuonInstallID'))), ''), if(variables('createPrivateSubnet3'), resourceId('Microsoft.Network/virtualNetworks/subnets', format('{0}-vnet', parameters('nuonInstallID')), format('{0}-private-subnet-zone3', parameters('nuonInstallID'))), '')), lambda('x', not(empty(lambdaVariables('x'))))), ',')]"
+    },
+    "privateSubnetNames": {
+      "type": "string",
+      "value": "[join(filter(createArray(format('{0}-private-subnet-zone1', parameters('nuonInstallID')), if(variables('createPrivateSubnet2'), format('{0}-private-subnet-zone2', parameters('nuonInstallID')), ''), if(variables('createPrivateSubnet3'), format('{0}-private-subnet-zone3', parameters('nuonInstallID')), '')), lambda('x', not(empty(lambdaVariables('x'))))), ',')]"
+    }
+  }
+}
