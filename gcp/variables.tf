@@ -24,8 +24,9 @@ variable "runner_api_url" {
 
 variable "runner_api_token" {
   type        = string
+  default     = ""
   sensitive   = true
-  description = "The API token used by the runner to authenticate with the Nuon runner API."
+  description = "The API token used by the runner to authenticate with the Nuon runner API. Not needed when using init-mng-v2 (runner fetches its own token)."
 }
 
 variable "runner_id" {
@@ -41,6 +42,12 @@ variable "runner_init_script_url" {
 variable "phone_home_url" {
   type        = string
   description = "The URL the module calls to report provisioning results back to Nuon."
+}
+
+variable "install_inputs" {
+  type        = map(string)
+  default     = {}
+  description = "Customer-provided install inputs. Keys are input names, values are provided at apply time."
 }
 
 ##
@@ -83,22 +90,57 @@ variable "deprovision_predefined_role" {
   description = "GCP predefined role to bind to the deprovision service account (e.g. roles/editor)."
 }
 
-variable "has_break_glass" {
-  type        = bool
-  default     = false
-  description = "Whether to create break-glass service account and IAM resources."
+variable "break_glass_roles" {
+  type = map(object({
+    permissions     = list(string)
+    predefined_role = string
+    enabled         = bool
+  }))
+  default     = {}
+  description = "Break-glass roles. Each key is the role name. Disabled by default; only created when enabled=true."
 }
 
-variable "break_glass_permissions" {
+variable "custom_roles" {
+  type = map(object({
+    permissions     = list(string)
+    predefined_role = string
+    enabled         = bool
+  }))
+  default     = {}
+  description = "Custom roles for app operations. Each key is the role name. Enabled by default."
+}
+
+##
+## Secrets (provided via tfvars file)
+##
+
+variable "auto_generate_secrets" {
   type        = list(string)
   default     = []
-  description = "GCP IAM permissions for the break-glass service account custom role."
+  description = "Names of secrets to auto-generate. Random values are created and stored in Secret Manager."
 }
 
-variable "break_glass_predefined_role" {
+variable "secrets" {
+  type = map(object({
+    description = string
+    required    = bool
+    value       = string
+  }))
+  default     = {}
+  sensitive   = true
+  description = "Customer-provided secrets. Keys are secret names, values include the secret value to store in Secret Manager."
+}
+
+variable "has_gke_node_pool" {
+  type        = bool
+  default     = true
+  description = "Whether to create a least-privilege service account for GKE node pools."
+}
+
+variable "gke_node_pool_sa_email" {
   type        = string
   default     = ""
-  description = "GCP predefined role to bind to the break-glass service account (e.g. roles/editor)."
+  description = "Email of an existing GKE node pool service account. If provided, skips creating one."
 }
 
 ##

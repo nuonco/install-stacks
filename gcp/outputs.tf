@@ -30,6 +30,12 @@ output "runner_service_account_email" {
   value = google_service_account.runner.email
 }
 
+output "gke_node_pool_sa_email" {
+  value = var.gke_node_pool_sa_email != "" ? var.gke_node_pool_sa_email : (
+    local.create_gke_node_pool_sa ? google_service_account.gke_nodes[0].email : null
+  )
+}
+
 output "provision_sa_email" {
   value = local.has_provision ? google_service_account.provision[0].email : null
 }
@@ -42,6 +48,22 @@ output "deprovision_sa_email" {
   value = local.has_deprovision ? google_service_account.deprovision[0].email : null
 }
 
-output "break_glass_sa_email" {
-  value = var.has_break_glass ? google_service_account.break_glass[0].email : null
+output "break_glass_sa_emails" {
+  value       = local.break_glass_sa_emails
+  description = "Map of break-glass role name to service account email."
+}
+
+output "custom_sa_emails" {
+  value       = local.custom_sa_emails
+  description = "Map of custom role name to service account email."
+}
+
+output "install_inputs" {
+  value       = var.install_inputs
+  description = "Customer-provided install inputs passed back to Nuon."
+}
+
+output "secret_names" {
+  value       = local.all_secret_names
+  description = "Map of {name}_secret_name to fully qualified GCP Secret Manager resource names."
 }
