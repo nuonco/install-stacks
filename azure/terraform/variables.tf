@@ -145,6 +145,12 @@ variable "azure_resource_group_name" {
   description = "The name of the Azure resource group where Nuon runner infrastructure will be provisioned. Must already exist."
 }
 
+variable "services" {
+  type        = list(string)
+  default     = []
+  description = "List of Azure resource providers to register (e.g. Microsoft.ContainerService, Microsoft.KeyVault)."
+}
+
 variable "azure_location" {
   type        = string
   description = "The Azure region where Nuon runner infrastructure will be provisioned."
