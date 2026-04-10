@@ -152,6 +152,12 @@ variable "gcp_project_id" {
   description = "The GCP project ID where Nuon runner infrastructure will be provisioned. The customer provides this value."
 }
 
+variable "services" {
+  type        = list(string)
+  default     = []
+  description = "List of GCP service APIs to enable (e.g. compute.googleapis.com, container.googleapis.com)."
+}
+
 variable "gcp_region" {
   type        = string
   description = "The GCP region where Nuon runner infrastructure will be provisioned. The customer provides this value."
