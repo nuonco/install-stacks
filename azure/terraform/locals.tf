@@ -1,0 +1,35 @@
+locals {
+  prefix         = var.nuon_install_id
+  location       = var.azure_location
+  role_id_prefix = replace(var.nuon_install_id, "-", "_")
+
+  has_provision   = length(var.provision_permissions) > 0 || var.provision_predefined_role != ""
+  has_maintenance = length(var.maintenance_permissions) > 0 || var.maintenance_predefined_role != ""
+  has_deprovision = length(var.deprovision_permissions) > 0 || var.deprovision_predefined_role != ""
+
+  has_provision_custom   = length(var.provision_permissions) > 0
+  has_maintenance_custom = length(var.maintenance_permissions) > 0
+  has_deprovision_custom = length(var.deprovision_permissions) > 0
+
+  # Filter to only enabled roles
+  enabled_break_glass_roles = { for k, v in var.break_glass_roles : k => v if v.enabled }
+  enabled_custom_roles      = { for k, v in var.custom_roles : k => v if v.enabled }
+
+  # Build secret name maps for phone-home payload
+  auto_generate_secret_names = {
+    for k, v in azurerm_key_vault_secret.auto_generate :
+    "${k}_secret_name" => v.versionless_id
+  }
+  customer_secret_names = {
+    for k, v in azurerm_key_vault_secret.customer :
+    "${k}_secret_name" => v.versionless_id
+  }
+  all_secret_names = merge(local.auto_generate_secret_names, local.customer_secret_names)
+
+  tags = {
+    "nuon-install-id" = var.nuon_install_id
+    "nuon-org-id"     = var.nuon_org_id
+    "nuon-app-id"     = var.nuon_app_id
+    "managed-by"      = "nuon"
+  }
+}
