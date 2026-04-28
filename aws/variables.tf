@@ -50,10 +50,10 @@ variable "install_inputs" {
   description = "Customer-provided install inputs. Keys are input names, values are provided at apply time."
 }
 
-variable "nuon_control_plane_account_ids" {
+variable "nuon_support_iam_role_arns" {
   type        = list(string)
   default     = []
-  description = "AWS account IDs of the Nuon control plane that may assume the provision/maintenance/deprovision roles. Provided in the vendor tfvars."
+  description = "Nuon control-plane IAM role ARNs that may assume the provision/maintenance/deprovision/break-glass/custom roles. Provided in the vendor tfvars; mirrors the CloudFormation stack's `runner_default_support_iam_role_arn` ctl-api config."
 }
 
 ##

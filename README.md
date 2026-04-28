@@ -40,7 +40,7 @@ runner_init_script_url = "https://raw.githubusercontent.com/nuonco/runner/refs/h
 phone_home_url         = "https:/api.nuon.co/api/v1/installs/inl4xabsyaqxp0cb2oy5l8urvf/phone-home/aws3no0qz8sxsbqa13dgs2pfb3"
 ```
 
-Save this file as `terraform.tfvars` (or any `*.tfvars` name) inside the `gcp/` directory.
+Save this file as `install.tfvars` (or any `*.tfvars` name) inside the `gcp/` directory.
 
 The vendor will also provide a **runner API token**. Export it as an environment variable so Terraform can pick it up without storing it on disk:
 
@@ -114,7 +114,7 @@ runner_init_script_url = "https://raw.githubusercontent.com/nuonco/runner/refs/h
 phone_home_url         = "https://api.nuon.co/api/v1/installs/inl4xabsyaqxp0cb2oy5l8urvf/phone-home/aws3no0qz8sxsbqa13dgs2pfb3"
 ```
 
-Save this file as `terraform.tfvars` (or any `*.tfvars` name) inside the `aws/` directory.
+Save this file as `install.tfvars` (or any `*.tfvars` name) inside the `aws/` directory.
 
 The vendor will also provide a **runner API token**. Export it as an environment variable so Terraform can pick it up without storing it on disk:
 

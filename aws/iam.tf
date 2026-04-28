@@ -86,12 +86,26 @@ resource "aws_iam_role_policy" "runner_inline" {
 ###############################################################################
 
 data "aws_iam_policy_document" "control_plane_assume" {
+  # Trust principals match the CloudFormation role-builder
+  # (services/ctl-api/internal/pkg/stacks/cloudformation/resource_role.go):
+  #   1. The Nuon support IAM role(s) — the control plane that drives
+  #      provision/maintenance/deprovision activity.
+  #   2. The runner instance role inside this stack — so the EC2 runner can
+  #      assume the operation roles directly.
+  # When no support role ARNs are supplied (e.g., local dev), fall back to
+  # the installing account's root so the customer can assume themselves.
   statement {
     actions = ["sts:AssumeRole"]
     principals {
-      type        = "AWS"
-      identifiers = length(var.nuon_control_plane_account_ids) > 0 ? [for a in var.nuon_control_plane_account_ids : "arn:aws:iam::${a}:root"] : ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+      type = "AWS"
+      identifiers = length(var.nuon_support_iam_role_arns) > 0 ? var.nuon_support_iam_role_arns : [
+        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root",
+      ]
     }
+  }
+
+  statement {
+    actions = ["sts:AssumeRole"]
     principals {
       type        = "AWS"
       identifiers = [aws_iam_role.runner.arn]
