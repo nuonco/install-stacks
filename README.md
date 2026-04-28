@@ -7,6 +7,7 @@ Terraform modules that provision the infrastructure required to run [Nuon](https
 | Provider | Directory | Status |
 |----------|-----------|--------|
 | GCP      | [`gcp/`](gcp/) | ✅ Available |
+| AWS      | [`aws/`](aws/) | ✅ Available |
 
 ## GCP
 
@@ -80,6 +81,80 @@ You will be prompted for the two customer-supplied values:
 | `private_subnet_name` | Private subnet name |
 | `runner_subnet_name` | Runner subnet name |
 | `runner_service_account_email` | Runner service account email |
+
+## AWS
+
+### What gets created
+
+- **VPC & Subnets** – A dedicated VPC (`10.128.0.0/16`) with public, private, and runner subnets, an Internet Gateway, and a NAT Gateway for outbound internet access.
+- **Security Groups** – A runner security group permitting internal traffic and egress to the internet.
+- **IAM** – A runner instance role and instance profile, plus provision/maintenance/deprovision IAM roles trusted by the Nuon control plane and the runner. Optional break-glass and custom app-operation roles.
+- **Runner ASG** – A `t3.medium` Auto Scaling Group (min/max/desired = 1) running Ubuntu 24.04 LTS that bootstraps itself using the Nuon runner init script. Logs to a dedicated CloudWatch log group.
+- **Secrets** – AWS Secrets Manager entries for auto-generated and customer-provided secrets.
+- **Phone Home** – A `local-exec` provisioner that reports provisioning results back to Nuon.
+
+### Prerequisites
+
+- Terraform ≥ 1.11.0
+- AWS provider ≥ 5.0
+- An AWS account with permissions to create VPC, EC2, IAM, Secrets Manager, and CloudWatch resources
+- Credentials configured for the `aws` provider (e.g. `aws sso login`, `AWS_PROFILE`, or environment variables)
+
+### Usage
+
+Your Nuon vendor will provide a `.tfvars` file containing the configuration for your install. It will look like this:
+
+```hcl
+nuon_install_id        = "inl4xabsyaqxp0cb2oy5l8urvf"
+nuon_org_id            = "orgnwi4odoca7y0z9wddc1767e"
+nuon_app_id            = "appk2o58477kw8jbounuxpkaqr"
+runner_api_url         = "https://api.nuon.co/runner"
+runner_id              = "run4dbg9i5fzwdlq7zk1llbout"
+runner_init_script_url = "https://raw.githubusercontent.com/nuonco/runner/refs/heads/main/scripts/aws/init.sh"
+phone_home_url         = "https://api.nuon.co/api/v1/installs/inl4xabsyaqxp0cb2oy5l8urvf/phone-home/aws3no0qz8sxsbqa13dgs2pfb3"
+```
+
+Save this file as `terraform.tfvars` (or any `*.tfvars` name) inside the `aws/` directory.
+
+The vendor will also provide a **runner API token**. Export it as an environment variable so Terraform can pick it up without storing it on disk:
+
+```bash
+export TF_VAR_runner_api_token="<token provided by your vendor>"
+```
+
+Then run:
+
+```bash
+cd aws/
+
+# Optionally configure a remote backend
+cp backend.tf.example backend.tf
+# Edit backend.tf with your S3 bucket details
+
+terraform init
+terraform plan
+terraform apply
+```
+
+You will be prompted for the customer-supplied value:
+
+| Variable | Description |
+|----------|-------------|
+| `aws_region` | The AWS region for all resources |
+
+### Outputs
+
+| Output | Description |
+|--------|-------------|
+| `aws_account_id` | AWS account ID |
+| `region` | Provisioned region |
+| `vpc_id` | VPC ID |
+| `public_subnet_id` | Public subnet ID |
+| `private_subnet_id` | Private subnet ID |
+| `runner_subnet_id` | Runner subnet ID |
+| `runner_role_arn` | Runner instance role ARN |
+| `runner_instance_profile_arn` | Runner instance profile ARN |
+| `runner_asg_name` | Runner Auto Scaling Group name |
 
 ## License
 
