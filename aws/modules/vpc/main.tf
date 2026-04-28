@@ -19,21 +19,33 @@ resource "aws_subnet" "public" {
   cidr_block              = "10.128.0.0/24"
   availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = true
-  tags                    = merge(var.tags, { Name = "${var.prefix}-public-subnet" })
+  tags = merge(var.tags, {
+    Name                     = "${var.prefix}-public-subnet"
+    visibility               = "public"
+    "network.nuon.co/domain" = "public"
+  })
 }
 
 resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.128.1.0/24"
   availability_zone = data.aws_availability_zones.available.names[0]
-  tags              = merge(var.tags, { Name = "${var.prefix}-private-subnet" })
+  tags = merge(var.tags, {
+    Name                     = "${var.prefix}-private-subnet"
+    visibility               = "private"
+    "network.nuon.co/domain" = "internal"
+  })
 }
 
 resource "aws_subnet" "runner" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.128.2.0/24"
   availability_zone = data.aws_availability_zones.available.names[0]
-  tags              = merge(var.tags, { Name = "${var.prefix}-runner-subnet" })
+  tags = merge(var.tags, {
+    Name                     = "${var.prefix}-runner-subnet"
+    visibility               = "private"
+    "network.nuon.co/domain" = "runner"
+  })
 }
 
 resource "aws_eip" "nat" {
@@ -88,7 +100,10 @@ resource "aws_security_group" "runner" {
   name        = "${var.prefix}-runner-sg"
   description = "Nuon runner security group for ${var.prefix}"
   vpc_id      = aws_vpc.main.id
-  tags        = merge(var.tags, { Name = "${var.prefix}-runner-sg" })
+  tags = merge(var.tags, {
+    Name                     = "${var.prefix}-runner-sg"
+    "network.nuon.co/domain" = "runner"
+  })
 
   egress {
     from_port   = 0
