@@ -65,10 +65,11 @@ resource "null_resource" "phone_home" {
     aws_secretsmanager_secret_version.customer,
   ]
 
-  # Re-fire only when the payload actually changes — keeps re-applies from
-  # spamming the Nuon phone-home endpoint with duplicate Create calls.
+  # Always fire on every apply. The Nuon control plane expects a phone-home
+  # on every provision/reprovision so it can attach the latest stack outputs
+  # to the current InstallStackVersion run.
   triggers = {
-    payload_sha = sha256(jsonencode(local.phone_home_payload))
+    always_run = timestamp()
   }
 
   provisioner "local-exec" {
