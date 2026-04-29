@@ -59,14 +59,25 @@ variable "nuon_support_iam_role_arns" {
 ##
 ## IAM permissions (provided via tfvars file)
 ##
-## permissions: list of IAM action strings granted via an inline policy.
+## inline_policy_document: full IAM policy document JSON to attach as an inline
+##   policy. Preserves Effect / Action / Resource / Condition fidelity. Mirrors
+##   what the CloudFormation install stack attaches as `AWS::IAM::Policy`. Takes
+##   precedence over `permissions` when set.
+## permissions: list of IAM action strings granted via an inline Allow-on-`*`
+##   policy. Convenient shorthand; loses Resource/Condition scoping.
 ## managed_policy_arns: AWS managed (or customer-managed) policy ARNs to attach.
 ##
 
 variable "provision_permissions" {
   type        = list(string)
   default     = []
-  description = "IAM action strings granted to the provision role via an inline policy."
+  description = "IAM action strings granted to the provision role via an inline policy. Ignored when provision_inline_policy_document is set."
+}
+
+variable "provision_inline_policy_document" {
+  type        = string
+  default     = ""
+  description = "JSON IAM policy document attached to the provision role as an inline policy. When non-empty, takes precedence over provision_permissions."
 }
 
 variable "provision_managed_policy_arns" {
@@ -78,7 +89,13 @@ variable "provision_managed_policy_arns" {
 variable "maintenance_permissions" {
   type        = list(string)
   default     = []
-  description = "IAM action strings granted to the maintenance role via an inline policy."
+  description = "IAM action strings granted to the maintenance role via an inline policy. Ignored when maintenance_inline_policy_document is set."
+}
+
+variable "maintenance_inline_policy_document" {
+  type        = string
+  default     = ""
+  description = "JSON IAM policy document attached to the maintenance role as an inline policy. When non-empty, takes precedence over maintenance_permissions."
 }
 
 variable "maintenance_managed_policy_arns" {
@@ -90,7 +107,13 @@ variable "maintenance_managed_policy_arns" {
 variable "deprovision_permissions" {
   type        = list(string)
   default     = []
-  description = "IAM action strings granted to the deprovision role via an inline policy."
+  description = "IAM action strings granted to the deprovision role via an inline policy. Ignored when deprovision_inline_policy_document is set."
+}
+
+variable "deprovision_inline_policy_document" {
+  type        = string
+  default     = ""
+  description = "JSON IAM policy document attached to the deprovision role as an inline policy. When non-empty, takes precedence over deprovision_permissions."
 }
 
 variable "deprovision_managed_policy_arns" {
@@ -101,22 +124,24 @@ variable "deprovision_managed_policy_arns" {
 
 variable "break_glass_roles" {
   type = map(object({
-    permissions         = list(string)
-    managed_policy_arns = list(string)
-    enabled             = bool
+    permissions            = optional(list(string), [])
+    inline_policy_document = optional(string, "")
+    managed_policy_arns    = optional(list(string), [])
+    enabled                = bool
   }))
   default     = {}
-  description = "Break-glass roles. Each key is the role name. Disabled by default; only created when enabled=true."
+  description = "Break-glass roles. Each key is the role name. Disabled by default; only created when enabled=true. inline_policy_document takes precedence over permissions when set."
 }
 
 variable "custom_roles" {
   type = map(object({
-    permissions         = list(string)
-    managed_policy_arns = list(string)
-    enabled             = bool
+    permissions            = optional(list(string), [])
+    inline_policy_document = optional(string, "")
+    managed_policy_arns    = optional(list(string), [])
+    enabled                = bool
   }))
   default     = {}
-  description = "Custom roles for app operations. Each key is the role name. Enabled when enabled=true."
+  description = "Custom roles for app operations. Each key is the role name. Enabled when enabled=true. inline_policy_document takes precedence over permissions when set."
 }
 
 ##

@@ -119,17 +119,10 @@ resource "aws_iam_role" "provision" {
 }
 
 resource "aws_iam_role_policy" "provision_inline" {
-  count = local.has_provision && length(var.provision_permissions) > 0 ? 1 : 0
-  name  = "${local.prefix}-provision-inline"
-  role  = aws_iam_role.provision[0].id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = var.provision_permissions
-      Resource = "*"
-    }]
-  })
+  count  = local.has_provision && local.provision_inline_policy != "" ? 1 : 0
+  name   = "${local.prefix}-provision-inline"
+  role   = aws_iam_role.provision[0].id
+  policy = local.provision_inline_policy
 }
 
 resource "aws_iam_role_policy_attachment" "provision_managed" {
@@ -150,17 +143,10 @@ resource "aws_iam_role" "maintenance" {
 }
 
 resource "aws_iam_role_policy" "maintenance_inline" {
-  count = local.has_maintenance && length(var.maintenance_permissions) > 0 ? 1 : 0
-  name  = "${local.prefix}-maintenance-inline"
-  role  = aws_iam_role.maintenance[0].id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = var.maintenance_permissions
-      Resource = "*"
-    }]
-  })
+  count  = local.has_maintenance && local.maintenance_inline_policy != "" ? 1 : 0
+  name   = "${local.prefix}-maintenance-inline"
+  role   = aws_iam_role.maintenance[0].id
+  policy = local.maintenance_inline_policy
 }
 
 resource "aws_iam_role_policy_attachment" "maintenance_managed" {
@@ -181,17 +167,10 @@ resource "aws_iam_role" "deprovision" {
 }
 
 resource "aws_iam_role_policy" "deprovision_inline" {
-  count = local.has_deprovision && length(var.deprovision_permissions) > 0 ? 1 : 0
-  name  = "${local.prefix}-deprovision-inline"
-  role  = aws_iam_role.deprovision[0].id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = var.deprovision_permissions
-      Resource = "*"
-    }]
-  })
+  count  = local.has_deprovision && local.deprovision_inline_policy != "" ? 1 : 0
+  name   = "${local.prefix}-deprovision-inline"
+  role   = aws_iam_role.deprovision[0].id
+  policy = local.deprovision_inline_policy
 }
 
 resource "aws_iam_role_policy_attachment" "deprovision_managed" {
@@ -204,25 +183,22 @@ resource "aws_iam_role_policy_attachment" "deprovision_managed" {
 # Break-glass roles (dynamic, one per enabled role)
 ###############################################################################
 
+# Role names come from the ctl-api renderer with install-id templating already
+# applied by the vendor's stack.toml — match CFN's contract (`RoleName: role.Name`)
+# and use each.key verbatim. Rewrapping with `${local.prefix}-bg-` here would
+# double-prefix and overflow IAM's 64-char role-name limit.
 resource "aws_iam_role" "break_glass" {
   for_each           = local.enabled_break_glass_roles
-  name               = "${local.prefix}-bg-${each.key}"
+  name               = each.key
   assume_role_policy = data.aws_iam_policy_document.control_plane_assume.json
   tags               = local.tags
 }
 
 resource "aws_iam_role_policy" "break_glass_inline" {
-  for_each = { for k, v in local.enabled_break_glass_roles : k => v if length(v.permissions) > 0 }
-  name     = "${local.prefix}-bg-${each.key}-inline"
+  for_each = { for k, v in local.enabled_break_glass_roles : k => v if local.break_glass_inline_policies[k] != "" }
+  name     = "${each.key}-inline"
   role     = aws_iam_role.break_glass[each.key].id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = each.value.permissions
-      Resource = "*"
-    }]
-  })
+  policy   = local.break_glass_inline_policies[each.key]
 }
 
 resource "aws_iam_role_policy_attachment" "break_glass_managed" {
@@ -241,23 +217,16 @@ resource "aws_iam_role_policy_attachment" "break_glass_managed" {
 
 resource "aws_iam_role" "custom" {
   for_each           = local.enabled_custom_roles
-  name               = "${local.prefix}-c-${each.key}"
+  name               = each.key
   assume_role_policy = data.aws_iam_policy_document.control_plane_assume.json
   tags               = local.tags
 }
 
 resource "aws_iam_role_policy" "custom_inline" {
-  for_each = { for k, v in local.enabled_custom_roles : k => v if length(v.permissions) > 0 }
-  name     = "${local.prefix}-c-${each.key}-inline"
+  for_each = { for k, v in local.enabled_custom_roles : k => v if local.custom_inline_policies[k] != "" }
+  name     = "${each.key}-inline"
   role     = aws_iam_role.custom[each.key].id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = each.value.permissions
-      Resource = "*"
-    }]
-  })
+  policy   = local.custom_inline_policies[each.key]
 }
 
 resource "aws_iam_role_policy_attachment" "custom_managed" {
