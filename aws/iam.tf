@@ -25,7 +25,7 @@ resource "aws_iam_instance_profile" "runner" {
 }
 
 # The runner needs to assume the operation roles (provision/maintenance/deprovision/etc)
-# and read its own secrets. Customer apps may layer additional inline policies.
+# and read its own secrets. Apps configure the policies attached to each role.
 data "aws_iam_policy_document" "runner_inline" {
   statement {
     sid     = "AssumeOperationRoles"
@@ -86,14 +86,6 @@ resource "aws_iam_role_policy" "runner_inline" {
 ###############################################################################
 
 data "aws_iam_policy_document" "control_plane_assume" {
-  # Trust principals match the CloudFormation role-builder
-  # (services/ctl-api/internal/pkg/stacks/cloudformation/resource_role.go):
-  #   1. The Nuon support IAM role(s) — the control plane that drives
-  #      provision/maintenance/deprovision activity.
-  #   2. The runner instance role inside this stack — so the EC2 runner can
-  #      assume the operation roles directly.
-  # When no support role ARNs are supplied (e.g., local dev), fall back to
-  # the installing account's root so the customer can assume themselves.
   statement {
     actions = ["sts:AssumeRole"]
     principals {

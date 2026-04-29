@@ -1,5 +1,4 @@
 # Output names mirror the CloudFormation phone-home Lambda payload
-# (services/ctl-api/internal/pkg/stacks/cloudformation/resource_runner_phone_home_lambda.go)
 # so anything reading `terraform output` or `nuon.install_stack.outputs.*` sees
 # the same key set whether the install was applied via CFN or Terraform.
 

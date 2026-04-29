@@ -17,7 +17,6 @@ locals {
   all_secret_arns = merge(local.auto_generate_secret_arns, local.customer_secret_arns)
 
   # Key names below mirror the CloudFormation phone-home Lambda payload
-  # (`services/ctl-api/internal/pkg/stacks/cloudformation/resource_runner_phone_home_lambda.go`)
   # so app templates referencing `nuon.install_stack.outputs.*` resolve
   # identically whether the customer applied via CFN or Terraform.
   phone_home_payload = merge({
@@ -65,9 +64,6 @@ resource "null_resource" "phone_home" {
     aws_secretsmanager_secret_version.customer,
   ]
 
-  # Always fire on every apply. The Nuon control plane expects a phone-home
-  # on every provision/reprovision so it can attach the latest stack outputs
-  # to the current InstallStackVersion run.
   triggers = {
     always_run = timestamp()
   }

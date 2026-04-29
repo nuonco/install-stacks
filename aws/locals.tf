@@ -9,10 +9,6 @@ locals {
   enabled_break_glass_roles = { for k, v in var.break_glass_roles : k => v if v.enabled }
   enabled_custom_roles      = { for k, v in var.custom_roles : k => v if v.enabled }
 
-  # Canonical Nuon tag keys, matching the CloudFormation tagger
-  # (services/ctl-api/internal/pkg/stacks/cloudformation/tagger.go) so customer
-  # components that filter resources by these tags work identically across
-  # CFN- and Terraform-applied installs.
   tags = {
     "install.nuon.co/id" = var.nuon_install_id
     "nuon_install_id"    = var.nuon_install_id
