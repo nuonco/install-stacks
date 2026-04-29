@@ -33,8 +33,8 @@ locals {
     # actual JSON list here would land in postgres HSTORE as the string
     # "[subnet-x subnet-y]" (space-separated) and decode to an empty list.
     runner_subnet            = module.vpc.runner_subnet_id
-    public_subnets           = join(",", [module.vpc.public_subnet_id])
-    private_subnets          = join(",", [module.vpc.private_subnet_id])
+    public_subnets           = join(",", module.vpc.public_subnet_ids)
+    private_subnets          = join(",", module.vpc.private_subnet_ids)
     runner_security_group_id = module.vpc.runner_security_group_id
     runner_iam_role_arn      = aws_iam_role.runner.arn
     runner_instance_profile  = aws_iam_instance_profile.runner.arn
