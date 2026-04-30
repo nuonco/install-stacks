@@ -1,10 +1,10 @@
-data "aws_ami" "ubuntu" {
+data "aws_ami" "al2023" {
   most_recent = true
-  owners      = ["099720109477"]
+  owners      = ["amazon"]
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
+    values = ["al2023-ami-2023.*-x86_64"]
   }
 
   filter {
@@ -20,20 +20,28 @@ resource "aws_cloudwatch_log_group" "runner" {
 }
 
 locals {
+  # Pinned to main: this stack is tightly coupled to the init script's tag
+  # contract and IID auth flow. Do not version separately.
+  runner_init_script_url = "https://raw.githubusercontent.com/nuonco/runner/refs/heads/main/scripts/aws/init-mng-v2.sh"
+
   user_data = <<-EOT
     #!/bin/bash
     set -e
-    export NUON_RUNNER_ID=${var.runner_id}
-    export NUON_RUNNER_API_URL=${var.runner_api_url}
-    export NUON_RUNNER_API_TOKEN=${var.runner_api_token}
-    export NUON_INSTALL_ID=${var.nuon_install_id}
-    curl -fsSL ${var.runner_init_script_url} | bash
+    export RUNNER_AUTH_METHOD=iid
+    curl -fsSL ${local.runner_init_script_url} | bash
   EOT
+
+  runner_tags = merge(var.tags, {
+    Name                = "${var.prefix}-runner"
+    nuon_runner_id      = var.runner_id
+    nuon_runner_api_url = var.runner_api_url
+    nuon_install_id     = var.nuon_install_id
+  })
 }
 
 resource "aws_launch_template" "runner" {
   name_prefix   = "${var.prefix}-runner-"
-  image_id      = data.aws_ami.ubuntu.id
+  image_id      = data.aws_ami.al2023.id
   instance_type = var.instance_type
   user_data     = base64encode(local.user_data)
 
@@ -47,7 +55,7 @@ resource "aws_launch_template" "runner" {
   }
 
   block_device_mappings {
-    device_name = "/dev/sda1"
+    device_name = "/dev/xvda"
     ebs {
       volume_size = 30
       volume_type = "gp3"
@@ -56,7 +64,7 @@ resource "aws_launch_template" "runner" {
 
   tag_specifications {
     resource_type = "instance"
-    tags          = merge(var.tags, { Name = "${var.prefix}-runner" })
+    tags          = local.runner_tags
   }
 }
 

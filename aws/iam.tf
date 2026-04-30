@@ -73,6 +73,13 @@ data "aws_iam_policy_document" "runner_inline" {
     ]
     resources = ["arn:aws:logs:*:*:log-group:/nuon/${local.prefix}/*"]
   }
+
+  # init-mng-v2.sh reads instance tags (nuon_runner_id, nuon_runner_api_url) via DescribeTags.
+  statement {
+    sid       = "RunnerDescribeTags"
+    actions   = ["ec2:DescribeTags"]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role_policy" "runner_inline" {
