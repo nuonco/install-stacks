@@ -70,12 +70,13 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_subnet" "runner" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.128.2.0/24"
-  availability_zone = local.azs[0]
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.128.2.0/24"
+  availability_zone       = local.azs[0]
+  map_public_ip_on_launch = true
   tags = merge(var.tags, {
     Name                     = "${var.prefix}-runner-subnet"
-    visibility               = "private"
+    visibility               = "public"
     "network.nuon.co/domain" = "runner"
   })
 }
@@ -128,7 +129,7 @@ resource "aws_route_table_association" "private" {
 
 resource "aws_route_table_association" "runner" {
   subnet_id      = aws_subnet.runner.id
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.public.id
 }
 
 resource "aws_security_group" "runner" {
@@ -152,5 +153,13 @@ resource "aws_security_group" "runner" {
     to_port   = 0
     protocol  = "-1"
     self      = true
+  }
+
+  # TEMP: SSH for debugging via EC2 Instance Connect / direct SSH.
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }

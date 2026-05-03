@@ -49,8 +49,13 @@ resource "aws_launch_template" "runner" {
     name = var.runner_instance_profile_name
   }
 
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
   network_interfaces {
-    associate_public_ip_address = false
+    associate_public_ip_address = true
     security_groups             = [var.runner_security_group]
   }
 
@@ -84,18 +89,15 @@ resource "aws_autoscaling_group" "runner" {
     strategy = "Rolling"
   }
 
+  # ASGs ignore the launch template's tag_specifications when launching
+  # instances — only ASG `tag` blocks with propagate_at_launch=true land on
+  # the instance. The init script's `get_tag` lookups depend on these.
   dynamic "tag" {
-    for_each = var.tags
+    for_each = local.runner_tags
     content {
       key                 = tag.key
       value               = tag.value
       propagate_at_launch = true
     }
-  }
-
-  tag {
-    key                 = "Name"
-    value               = "${var.prefix}-runner"
-    propagate_at_launch = true
   }
 }
