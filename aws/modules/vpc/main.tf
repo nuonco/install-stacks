@@ -70,13 +70,12 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_subnet" "runner" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.128.2.0/24"
-  availability_zone       = local.azs[0]
-  map_public_ip_on_launch = true
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.128.2.0/24"
+  availability_zone = local.azs[0]
   tags = merge(var.tags, {
     Name                     = "${var.prefix}-runner-subnet"
-    visibility               = "public"
+    visibility               = "private"
     "network.nuon.co/domain" = "runner"
   })
 }
@@ -129,7 +128,7 @@ resource "aws_route_table_association" "private" {
 
 resource "aws_route_table_association" "runner" {
   subnet_id      = aws_subnet.runner.id
-  route_table_id = aws_route_table.public.id
+  route_table_id = aws_route_table.private.id
 }
 
 resource "aws_security_group" "runner" {
@@ -155,11 +154,31 @@ resource "aws_security_group" "runner" {
     self      = true
   }
 
-  # TEMP: SSH for debugging via EC2 Instance Connect / direct SSH.
+  # SSH from the EC2 Instance Connect Endpoint only (no public exposure).
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.eice.id]
   }
+}
+
+resource "aws_security_group" "eice" {
+  name        = "${var.prefix}-eice-sg"
+  description = "EC2 Instance Connect Endpoint for ${var.prefix}"
+  vpc_id      = aws_vpc.main.id
+  tags        = merge(var.tags, { Name = "${var.prefix}-eice-sg" })
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+  }
+}
+
+resource "aws_ec2_instance_connect_endpoint" "runner" {
+  subnet_id          = aws_subnet.runner.id
+  security_group_ids = [aws_security_group.eice.id]
+  tags               = merge(var.tags, { Name = "${var.prefix}-eice" })
 }

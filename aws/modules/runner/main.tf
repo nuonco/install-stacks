@@ -55,7 +55,7 @@ resource "aws_launch_template" "runner" {
   }
 
   network_interfaces {
-    associate_public_ip_address = true
+    associate_public_ip_address = false
     security_groups             = [var.runner_security_group]
   }
 
