@@ -24,10 +24,20 @@ locals {
   # contract and IID auth flow. Do not version separately.
   runner_init_script_url = "https://raw.githubusercontent.com/nuonco/runner/refs/heads/main/scripts/aws/init-mng-v2.sh"
 
+  # NAT GW + route table associations may not be ready when the instance
+  # boots. Wait for outbound HTTPS to the init script host before running it,
+  # so we don't burn the only user_data run on a transient connect timeout.
   user_data = <<-EOT
     #!/bin/bash
     set -e
     export RUNNER_AUTH_METHOD=iid
+    for i in $(seq 1 30); do
+      if curl -fsS --max-time 5 -o /dev/null https://raw.githubusercontent.com; then
+        break
+      fi
+      echo "waiting for outbound egress... ($i/30)"
+      sleep 10
+    done
     curl -fsSL ${local.runner_init_script_url} | bash
   EOT
 
