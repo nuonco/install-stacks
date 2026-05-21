@@ -156,6 +156,36 @@ You will be prompted for the customer-supplied value:
 | `runner_instance_profile_arn` | Runner instance profile ARN |
 | `runner_asg_name` | Runner Auto Scaling Group name |
 
+## Running Stacks Manually
+
+Sometimes you can't (or don't want to) deploy the stack directly — maybe your org requires resources to go through a different provisioning process, or you're working with an ARM template and prefer to create things by hand. That's fine, but you still need to "phone home" so Nuon knows what you created.
+
+### Why phone home?
+
+When a stack deploys normally, the last step is a callback to Nuon's API with the resource IDs and metadata from your cloud account. Nuon uses this to wire up the runner, configure networking, and move your install out of the "awaiting provisioning" state. If you skip the stack and create resources yourself, that callback never fires and your install stays stuck.
+
+### Azure
+
+There's a helper script that queries your Azure resources and either prints the payload or sends it directly:
+
+```bash
+# Just print the JSON (stdout only — easy to copy/paste)
+./scripts/azure-phone-home.sh outputs <install-id> <resource-group-name>
+
+# Send the phone-home to Nuon
+./scripts/azure-phone-home.sh phone-home <install-id> <phone-home-id> <resource-group-name>
+```
+
+Requires `az` CLI (logged in), `curl`, and `jq`. Your Nuon vendor will provide the install ID and phone-home ID.
+
+### AWS
+
+TODO
+
+### GCP
+
+TODO
+
 ## License
 
 See [LICENSE](LICENSE) for details.
