@@ -44,8 +44,14 @@ resource "google_secret_manager_secret_iam_member" "auto_generate_accessor" {
 # Customer-provided secrets
 ###############################################################################
 
+# Skip secrets with empty values — GCP rejects empty payloads, and an optional
+# secret left unset shouldn't be created at all.
+locals {
+  customer_secret_keys = toset(nonsensitive([for k, v in var.secrets : k if v.value != ""]))
+}
+
 resource "google_secret_manager_secret" "customer" {
-  for_each  = toset(nonsensitive(keys(var.secrets)))
+  for_each  = local.customer_secret_keys
   secret_id = "${local.prefix}-${each.key}"
   labels    = local.labels
 
@@ -55,7 +61,7 @@ resource "google_secret_manager_secret" "customer" {
 }
 
 resource "google_secret_manager_secret_version" "customer" {
-  for_each    = toset(nonsensitive(keys(var.secrets)))
+  for_each    = local.customer_secret_keys
   secret      = google_secret_manager_secret.customer[each.key].id
   secret_data = var.secrets[each.key].value
 
@@ -65,7 +71,7 @@ resource "google_secret_manager_secret_version" "customer" {
 }
 
 resource "google_secret_manager_secret_iam_member" "customer_accessor" {
-  for_each  = local.has_provision ? toset(nonsensitive(keys(var.secrets))) : toset([])
+  for_each  = local.has_provision ? local.customer_secret_keys : toset([])
   secret_id = google_secret_manager_secret.customer[each.key].id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.provision[0].email}"
