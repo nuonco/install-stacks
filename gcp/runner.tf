@@ -1,6 +1,6 @@
 resource "google_compute_instance" "runner" {
   name         = "${local.prefix}-runner"
-  machine_type = "e2-medium"
+  machine_type = var.runner_machine_type
   zone         = "${local.region}-a"
   labels       = local.labels
   tags         = ["nuon-runner"]

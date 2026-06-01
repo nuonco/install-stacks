@@ -143,6 +143,12 @@ variable "gke_node_pool_sa_email" {
   description = "Email of an existing GKE node pool service account. If provided, skips creating one."
 }
 
+variable "runner_machine_type" {
+  type        = string
+  default     = "e2-standard-4"
+  description = "GCE machine type for the Nuon runner instance. Default e2-standard-4 (4 vCPU / 16 GB) covers pulumi-gcp Go compiles, which can spike >8 GB on the heaviest packages; override with a smaller type (e.g. e2-medium or e2-standard-2) for lighter installs."
+}
+
 ##
 ## Customer-supplied variables (prompted at apply time)
 ##
