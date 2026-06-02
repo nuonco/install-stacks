@@ -44,10 +44,12 @@ resource "google_secret_manager_secret_iam_member" "auto_generate_accessor" {
 # Customer-provided secrets
 ###############################################################################
 
-# Skip secrets with empty values — GCP rejects empty payloads, and an optional
-# secret left unset shouldn't be created at all.
+# Skip optional secrets left unset — an optional secret with no value shouldn't
+# be created at all. Required secrets are always created: if one is left empty,
+# GCP rejects the empty payload and surfaces the error instead of silently
+# skipping a secret the install depends on.
 locals {
-  customer_secret_keys = toset(nonsensitive([for k, v in var.secrets : k if v.value != ""]))
+  customer_secret_keys = toset(nonsensitive([for k, v in var.secrets : k if v.value != "" || v.required]))
 }
 
 resource "google_secret_manager_secret" "customer" {
