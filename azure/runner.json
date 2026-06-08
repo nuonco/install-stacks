@@ -38,6 +38,11 @@
         "upgradePolicy": {
           "mode": "Manual"
         },
+        "automaticRepairsPolicy": {
+          "enabled": true,
+          "gracePeriod": "PT10M",
+          "repairAction": "Replace"
+        },
         "virtualMachineProfile": {
           "osProfile": {
             "computerNamePrefix": "[parameters('nuonInstallID')]",
@@ -86,6 +91,24 @@
                       }
                     }
                   ]
+                }
+              }
+            ]
+          },
+          "extensionProfile": {
+            "extensions": [
+              {
+                "name": "ApplicationHealth",
+                "properties": {
+                  "publisher": "Microsoft.ManagedServices",
+                  "type": "ApplicationHealthLinux",
+                  "typeHandlerVersion": "2.0",
+                  "autoUpgradeMinorVersion": true,
+                  "settings": {
+                    "protocol": "http",
+                    "port": 9999,
+                    "requestPath": "/livez"
+                  }
                 }
               }
             ]
