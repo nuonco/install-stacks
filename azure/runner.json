@@ -102,12 +102,13 @@
                 "properties": {
                   "publisher": "Microsoft.ManagedServices",
                   "type": "ApplicationHealthLinux",
-                  "typeHandlerVersion": "2.0",
+                  "typeHandlerVersion": "1.0",
                   "autoUpgradeMinorVersion": true,
                   "settings": {
                     "protocol": "http",
                     "port": 9999,
-                    "requestPath": "/livez"
+                    "requestPath": "/livez",
+                    "numberOfProbes": 3
                   }
                 }
               }
