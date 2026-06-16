@@ -11,6 +11,11 @@ resource "random_password" "auto_generate" {
     secret_name = each.key
     install_id  = var.nuon_install_id
   }
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_secret_manager_secret" "auto_generate" {
@@ -21,6 +26,11 @@ resource "google_secret_manager_secret" "auto_generate" {
   replication {
     auto {}
   }
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_secret_manager_secret_version" "auto_generate" {
@@ -60,6 +70,11 @@ resource "google_secret_manager_secret" "customer" {
   replication {
     auto {}
   }
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_secret_manager_secret_version" "customer" {

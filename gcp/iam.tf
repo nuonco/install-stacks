@@ -5,6 +5,11 @@
 resource "google_service_account" "runner" {
   account_id   = "${substr(local.prefix, 0, 23)}-runner"
   display_name = "Nuon runner for ${local.prefix}"
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_member" "runner_owner" {
@@ -21,6 +26,11 @@ resource "google_service_account" "gke_nodes" {
   count        = local.create_gke_node_pool_sa ? 1 : 0
   account_id   = "${substr(local.prefix, 0, 20)}-gke-nodes"
   display_name = "GKE node pool SA for ${local.prefix}"
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_member" "gke_nodes_log_writer" {
@@ -59,6 +69,11 @@ resource "google_service_account" "provision" {
   count        = local.has_provision ? 1 : 0
   account_id   = "${substr(local.prefix, 0, 20)}-prov"
   display_name = "Nuon provision for ${local.prefix}"
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_custom_role" "provision" {
@@ -66,6 +81,11 @@ resource "google_project_iam_custom_role" "provision" {
   role_id     = "${substr(local.role_id_prefix, 0, 50)}_provision"
   title       = "Nuon provision role for ${local.prefix}"
   permissions = var.provision_permissions
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_member" "provision_custom_role" {
@@ -97,6 +117,11 @@ resource "google_service_account" "maintenance" {
   count        = local.has_maintenance ? 1 : 0
   account_id   = "${substr(local.prefix, 0, 20)}-maint"
   display_name = "Nuon maintenance for ${local.prefix}"
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_custom_role" "maintenance" {
@@ -104,6 +129,11 @@ resource "google_project_iam_custom_role" "maintenance" {
   role_id     = "${substr(local.role_id_prefix, 0, 47)}_maintenance"
   title       = "Nuon maintenance role for ${local.prefix}"
   permissions = var.maintenance_permissions
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_member" "maintenance_custom_role" {
@@ -135,6 +165,11 @@ resource "google_service_account" "deprovision" {
   count        = local.has_deprovision ? 1 : 0
   account_id   = "${substr(local.prefix, 0, 20)}-dep"
   display_name = "Nuon deprovision for ${local.prefix}"
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_custom_role" "deprovision" {
@@ -142,6 +177,11 @@ resource "google_project_iam_custom_role" "deprovision" {
   role_id     = "${substr(local.role_id_prefix, 0, 47)}_deprovision"
   title       = "Nuon deprovision role for ${local.prefix}"
   permissions = var.deprovision_permissions
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_member" "deprovision_custom_role" {
@@ -176,6 +216,11 @@ resource "google_service_account" "break_glass" {
   account_id   = local.break_glass_account_ids[each.key]
   display_name = each.key
   description  = "Nuon break-glass SA: ${each.key}"
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_custom_role" "break_glass" {
@@ -184,6 +229,11 @@ resource "google_project_iam_custom_role" "break_glass" {
   title       = each.key
   description = "Nuon break-glass role: ${each.key}"
   permissions = each.value.permissions
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_member" "break_glass_custom_role" {
@@ -218,6 +268,11 @@ resource "google_service_account" "custom" {
   account_id   = local.custom_account_ids[each.key]
   display_name = each.key
   description  = "Nuon custom role SA: ${each.key}"
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_custom_role" "custom" {
@@ -226,6 +281,11 @@ resource "google_project_iam_custom_role" "custom" {
   title       = each.key
   description = "Nuon custom role: ${each.key}"
   permissions = each.value.permissions
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_project_iam_member" "custom_custom_role" {

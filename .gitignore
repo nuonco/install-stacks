@@ -2,3 +2,5 @@
 .terraform*
 *.tfstate*
 *.tfplan
+
+install.tfvars
