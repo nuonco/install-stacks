@@ -170,15 +170,19 @@ resource "google_service_account_iam_member" "deprovision_token_creator" {
 ###############################################################################
 
 resource "google_service_account" "break_glass" {
-  for_each     = local.enabled_break_glass_roles
-  account_id   = "${substr(local.prefix, 0, 16)}-bg-${substr(replace(each.key, "/[^a-z0-9-]/", "-"), 0, 8)}"
-  display_name = "Nuon break-glass ${each.key} for ${local.prefix}"
+  for_each = local.enabled_break_glass_roles
+  # account_id is a hash (see locals.tf); the legible key lives here so the SA
+  # stays searchable (google_service_account has no labels field).
+  account_id   = local.break_glass_account_ids[each.key]
+  display_name = each.key
+  description  = "Nuon break-glass SA: ${each.key}"
 }
 
 resource "google_project_iam_custom_role" "break_glass" {
   for_each    = { for k, v in local.enabled_break_glass_roles : k => v if length(v.permissions) > 0 }
-  role_id     = "${substr(local.role_id_prefix, 0, 40)}_bg_${substr(replace(each.key, "/[^a-zA-Z0-9_]/", "_"), 0, 20)}"
-  title       = "Nuon break-glass ${each.key} for ${local.prefix}"
+  role_id     = local.break_glass_role_ids[each.key]
+  title       = each.key
+  description = "Nuon break-glass role: ${each.key}"
   permissions = each.value.permissions
 }
 
@@ -208,15 +212,19 @@ resource "google_service_account_iam_member" "break_glass_token_creator" {
 ###############################################################################
 
 resource "google_service_account" "custom" {
-  for_each     = local.enabled_custom_roles
-  account_id   = "${substr(local.prefix, 0, 16)}-c-${substr(replace(each.key, "/[^a-z0-9-]/", "-"), 0, 9)}"
-  display_name = "Nuon custom ${each.key} for ${local.prefix}"
+  for_each = local.enabled_custom_roles
+  # account_id is a hash (see locals.tf); the legible key lives here so the SA
+  # stays searchable (google_service_account has no labels field).
+  account_id   = local.custom_account_ids[each.key]
+  display_name = each.key
+  description  = "Nuon custom role SA: ${each.key}"
 }
 
 resource "google_project_iam_custom_role" "custom" {
   for_each    = { for k, v in local.enabled_custom_roles : k => v if length(v.permissions) > 0 }
-  role_id     = "${substr(local.role_id_prefix, 0, 40)}_c_${substr(replace(each.key, "/[^a-zA-Z0-9_]/", "_"), 0, 20)}"
-  title       = "Nuon custom ${each.key} for ${local.prefix}"
+  role_id     = local.custom_role_ids[each.key]
+  title       = each.key
+  description = "Nuon custom role: ${each.key}"
   permissions = each.value.permissions
 }
 
