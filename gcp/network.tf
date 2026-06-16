@@ -1,6 +1,11 @@
 resource "google_compute_network" "main" {
   name                    = "${local.prefix}-vpc"
   auto_create_subnetworks = false
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
 }
 
 resource "google_compute_subnetwork" "public" {
