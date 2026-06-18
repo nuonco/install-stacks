@@ -1,16 +1,15 @@
-resource "google_compute_instance" "runner" {
-  name         = "${local.prefix}-runner"
+resource "google_compute_instance_template" "runner" {
+  name_prefix  = "${local.prefix}-runner-"
   machine_type = var.runner_machine_type
-  zone         = "${local.region}-a"
+  region       = local.region
   labels       = local.labels
   tags         = ["nuon-runner"]
 
-  boot_disk {
-    initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2404-lts-amd64"
-      size  = 30
-      type  = "pd-balanced"
-    }
+  disk {
+    source_image = "ubuntu-os-cloud/ubuntu-2404-lts-amd64"
+    disk_size_gb = 30
+    disk_type    = "pd-balanced"
+    boot         = true
   }
 
   network_interface {
@@ -26,7 +25,7 @@ resource "google_compute_instance" "runner" {
     nuon_runner_id      = var.runner_id
     nuon_runner_api_url = var.runner_api_url
     nuon_install_id     = var.nuon_install_id
-    startup-script = <<-EOT
+    startup-script      = <<-EOT
       #!/bin/bash
       export NUON_RUNNER_ID=${var.runner_id}
       export NUON_RUNNER_API_URL=${var.runner_api_url}
@@ -43,12 +42,24 @@ resource "google_compute_instance" "runner" {
   }
 
   lifecycle {
-    replace_triggered_by = [null_resource.runner_script_trigger]
+    create_before_destroy = true
   }
 }
 
-resource "null_resource" "runner_script_trigger" {
-  triggers = {
-    init_script_url = var.runner_init_script_url
+resource "google_compute_instance_group_manager" "runner" {
+  name               = "${local.prefix}-runner"
+  base_instance_name = "${local.prefix}-runner"
+  zone               = "${local.region}-a"
+  target_size        = 1
+
+  version {
+    instance_template = google_compute_instance_template.runner.self_link
+  }
+
+  update_policy {
+    type                  = "PROACTIVE"
+    minimal_action        = "REPLACE"
+    max_surge_fixed       = 1
+    max_unavailable_fixed = 0
   }
 }
