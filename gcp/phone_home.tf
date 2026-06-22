@@ -1,28 +1,37 @@
 locals {
-  # Build SA email maps for phone-home payload
-  break_glass_sa_emails = { for k, v in google_service_account.break_glass : k => v.email }
-  custom_sa_emails      = { for k, v in google_service_account.custom : k => v.email }
+  # Build SA email / uniqueId maps for phone-home payload
+  break_glass_sa_emails     = { for k, v in google_service_account.break_glass : k => v.email }
+  custom_sa_emails          = { for k, v in google_service_account.custom : k => v.email }
+  break_glass_sa_unique_ids = { for k, v in google_service_account.break_glass : k => v.unique_id }
+  custom_sa_unique_ids      = { for k, v in google_service_account.custom : k => v.unique_id }
 
   phone_home_payload = merge({
-    request_type                 = "Create"
-    phone_home_type              = "gcp"
-    project_id                   = var.gcp_project_id
-    region                       = var.gcp_region
-    network_name                 = google_compute_network.main.name
-    network_id                   = google_compute_network.main.id
-    public_subnet_name           = google_compute_subnetwork.public.name
-    private_subnet_name          = google_compute_subnetwork.private.name
-    runner_subnet_name           = google_compute_subnetwork.runner.name
-    runner_service_account_email = google_service_account.runner.email
-    provision_sa_email           = local.has_provision ? google_service_account.provision[0].email : ""
-    maintenance_sa_email         = local.has_maintenance ? google_service_account.maintenance[0].email : ""
-    deprovision_sa_email         = local.has_deprovision ? google_service_account.deprovision[0].email : ""
-    break_glass_sa_emails        = local.break_glass_sa_emails
-    custom_sa_emails             = local.custom_sa_emails
+    request_type                     = "Create"
+    phone_home_type                  = "gcp"
+    project_id                       = var.gcp_project_id
+    region                           = var.gcp_region
+    network_name                     = google_compute_network.main.name
+    network_id                       = google_compute_network.main.id
+    public_subnet_name               = google_compute_subnetwork.public.name
+    private_subnet_name              = google_compute_subnetwork.private.name
+    runner_subnet_name               = google_compute_subnetwork.runner.name
+    runner_service_account_email     = google_service_account.runner.email
+    runner_service_account_unique_id = google_service_account.runner.unique_id
+    provision_sa_email               = local.has_provision ? google_service_account.provision[0].email : ""
+    provision_sa_unique_id           = local.has_provision ? google_service_account.provision[0].unique_id : ""
+    maintenance_sa_email             = local.has_maintenance ? google_service_account.maintenance[0].email : ""
+    maintenance_sa_unique_id         = local.has_maintenance ? google_service_account.maintenance[0].unique_id : ""
+    deprovision_sa_email             = local.has_deprovision ? google_service_account.deprovision[0].email : ""
+    deprovision_sa_unique_id         = local.has_deprovision ? google_service_account.deprovision[0].unique_id : ""
+    break_glass_sa_emails            = local.break_glass_sa_emails
+    break_glass_sa_unique_ids        = local.break_glass_sa_unique_ids
+    custom_sa_emails                 = local.custom_sa_emails
+    custom_sa_unique_ids             = local.custom_sa_unique_ids
     gke_node_pool_sa_email = var.gke_node_pool_sa_email != "" ? var.gke_node_pool_sa_email : (
       local.create_gke_node_pool_sa ? google_service_account.gke_nodes[0].email : ""
     )
-    install_inputs = var.install_inputs
+    gke_node_pool_sa_unique_id = var.gke_node_pool_sa_email == "" && local.create_gke_node_pool_sa ? google_service_account.gke_nodes[0].unique_id : ""
+    install_inputs             = var.install_inputs
   }, local.all_secret_names)
 }
 
