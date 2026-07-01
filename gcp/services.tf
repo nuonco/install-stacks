@@ -9,3 +9,9 @@ resource "google_project_service" "secret_manager" {
   service            = "secretmanager.googleapis.com"
   disable_on_destroy = false
 }
+
+resource "google_project_service" "iam_credentials" {
+  project            = var.gcp_project_id
+  service            = "iamcredentials.googleapis.com"
+  disable_on_destroy = false
+}
