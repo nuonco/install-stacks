@@ -37,6 +37,10 @@ locals {
 
 resource "null_resource" "phone_home" {
   depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+    google_project_service.iam_credentials,
+    google_project_service.cloud_resource_manager,
     google_compute_instance_group_manager.runner,
     google_service_account.runner,
     google_service_account.provision,
