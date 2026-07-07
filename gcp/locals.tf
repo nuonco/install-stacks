@@ -1,14 +1,14 @@
 locals {
-  prefix = var.nuon_install_id
+  prefix = local.nuon_install_id
   region = var.gcp_region
 
-  has_provision   = length(var.provision_policies) > 0 || var.provision_predefined_role != ""
-  has_maintenance = length(var.maintenance_policies) > 0 || var.maintenance_predefined_role != ""
-  has_deprovision = length(var.deprovision_policies) > 0 || var.deprovision_predefined_role != ""
+  has_provision   = length(local.provision_policies) > 0 || local.provision_predefined_role != ""
+  has_maintenance = length(local.maintenance_policies) > 0 || local.maintenance_predefined_role != ""
+  has_deprovision = length(local.deprovision_policies) > 0 || local.deprovision_predefined_role != ""
 
   # Filter to only enabled roles
-  enabled_break_glass_roles = { for k, v in var.break_glass_roles : k => v if v.enabled }
-  enabled_custom_roles      = { for k, v in var.custom_roles : k => v if v.enabled }
+  enabled_break_glass_roles = { for k, v in local.break_glass_roles : k => v if v.enabled }
+  enabled_custom_roles      = { for k, v in local.custom_roles : k => v if v.enabled }
 
   # Service-account ids and custom-role ids for the dynamic roles.
   #
@@ -70,9 +70,9 @@ locals {
   create_gke_node_pool_sa = var.has_gke_node_pool && var.gke_node_pool_sa_email == ""
 
   labels = {
-    "nuon-install-id" = var.nuon_install_id
-    "nuon-org-id"     = var.nuon_org_id
-    "nuon-app-id"     = var.nuon_app_id
+    "nuon-install-id" = local.nuon_install_id
+    "nuon-org-id"     = local.nuon_org_id
+    "nuon-app-id"     = local.nuon_app_id
     "managed-by"      = "nuon"
   }
 }

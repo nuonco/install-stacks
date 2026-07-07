@@ -31,7 +31,7 @@ locals {
       local.create_gke_node_pool_sa ? google_service_account.gke_nodes[0].email : ""
     )
     gke_node_pool_sa_unique_id = var.gke_node_pool_sa_email == "" && local.create_gke_node_pool_sa ? google_service_account.gke_nodes[0].unique_id : ""
-    install_inputs             = var.install_inputs
+    install_inputs             = local.install_inputs
     custom_nested_stacks       = local.custom_stack_outputs
   }, local.all_secret_names)
 }
@@ -66,7 +66,7 @@ resource "null_resource" "phone_home" {
 
   provisioner "local-exec" {
     command = <<-EOT
-      curl -sf -X POST '${var.phone_home_url}' \
+      curl -sf -X POST '${local.phone_home_url}' \
         -H 'Content-Type: application/json' \
         -d '${jsonencode(local.phone_home_payload)}'
     EOT

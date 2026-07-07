@@ -1,0 +1,4 @@
+provider_installation {
+  dev_overrides { "nuonco/nuon" = "/Users/jordanacosta/go/bin" }
+  direct {}
+}

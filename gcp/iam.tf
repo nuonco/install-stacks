@@ -91,7 +91,7 @@ resource "google_service_account" "provision" {
 }
 
 resource "google_project_iam_custom_role" "provision" {
-  for_each    = var.provision_policies
+  for_each    = local.provision_policies
   role_id     = "nuon_p_${md5("provision/${local.prefix}/${each.key}")}"
   title       = substr(each.key, 0, 100)
   description = "Nuon provision policy for ${local.prefix}: ${each.key}"
@@ -104,16 +104,16 @@ resource "google_project_iam_custom_role" "provision" {
 }
 
 resource "google_project_iam_member" "provision_custom_role" {
-  for_each = var.provision_policies
+  for_each = local.provision_policies
   project  = var.gcp_project_id
   role     = google_project_iam_custom_role.provision[each.key].id
   member   = "serviceAccount:${google_service_account.provision[0].email}"
 }
 
 resource "google_project_iam_member" "provision_predefined_role" {
-  count   = var.provision_predefined_role != "" ? 1 : 0
+  count   = local.provision_predefined_role != "" ? 1 : 0
   project = var.gcp_project_id
-  role    = var.provision_predefined_role
+  role    = local.provision_predefined_role
   member  = "serviceAccount:${google_service_account.provision[0].email}"
 }
 
@@ -140,7 +140,7 @@ resource "google_service_account" "maintenance" {
 }
 
 resource "google_project_iam_custom_role" "maintenance" {
-  for_each    = var.maintenance_policies
+  for_each    = local.maintenance_policies
   role_id     = "nuon_m_${md5("maintenance/${local.prefix}/${each.key}")}"
   title       = substr(each.key, 0, 100)
   description = "Nuon maintenance policy for ${local.prefix}: ${each.key}"
@@ -153,16 +153,16 @@ resource "google_project_iam_custom_role" "maintenance" {
 }
 
 resource "google_project_iam_member" "maintenance_custom_role" {
-  for_each = var.maintenance_policies
+  for_each = local.maintenance_policies
   project  = var.gcp_project_id
   role     = google_project_iam_custom_role.maintenance[each.key].id
   member   = "serviceAccount:${google_service_account.maintenance[0].email}"
 }
 
 resource "google_project_iam_member" "maintenance_predefined_role" {
-  count   = var.maintenance_predefined_role != "" ? 1 : 0
+  count   = local.maintenance_predefined_role != "" ? 1 : 0
   project = var.gcp_project_id
-  role    = var.maintenance_predefined_role
+  role    = local.maintenance_predefined_role
   member  = "serviceAccount:${google_service_account.maintenance[0].email}"
 }
 
@@ -189,7 +189,7 @@ resource "google_service_account" "deprovision" {
 }
 
 resource "google_project_iam_custom_role" "deprovision" {
-  for_each    = var.deprovision_policies
+  for_each    = local.deprovision_policies
   role_id     = "nuon_d_${md5("deprovision/${local.prefix}/${each.key}")}"
   title       = substr(each.key, 0, 100)
   description = "Nuon deprovision policy for ${local.prefix}: ${each.key}"
@@ -202,16 +202,16 @@ resource "google_project_iam_custom_role" "deprovision" {
 }
 
 resource "google_project_iam_member" "deprovision_custom_role" {
-  for_each = var.deprovision_policies
+  for_each = local.deprovision_policies
   project  = var.gcp_project_id
   role     = google_project_iam_custom_role.deprovision[each.key].id
   member   = "serviceAccount:${google_service_account.deprovision[0].email}"
 }
 
 resource "google_project_iam_member" "deprovision_predefined_role" {
-  count   = var.deprovision_predefined_role != "" ? 1 : 0
+  count   = local.deprovision_predefined_role != "" ? 1 : 0
   project = var.gcp_project_id
-  role    = var.deprovision_predefined_role
+  role    = local.deprovision_predefined_role
   member  = "serviceAccount:${google_service_account.deprovision[0].email}"
 }
 
