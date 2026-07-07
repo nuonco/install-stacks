@@ -22,19 +22,19 @@ resource "google_compute_instance_template" "runner" {
   }
 
   metadata = {
-    nuon_runner_id      = var.runner_id
-    nuon_runner_api_url = var.runner_api_url
-    nuon_install_id     = var.nuon_install_id
+    nuon_runner_id      = local.runner_id
+    nuon_runner_api_url = local.runner_api_url
+    nuon_install_id     = local.nuon_install_id
     startup-script      = <<-EOT
       #!/bin/bash
-      export NUON_RUNNER_ID=${var.runner_id}
-      export NUON_RUNNER_API_URL=${var.runner_api_url}
-      export NUON_RUNNER_API_TOKEN=${var.runner_api_token}
-      export NUON_INSTALL_ID=${var.nuon_install_id}
+      export NUON_RUNNER_ID=${local.runner_id}
+      export NUON_RUNNER_API_URL=${local.runner_api_url}
+      export NUON_RUNNER_API_TOKEN=${local.runner_api_token}
+      export NUON_INSTALL_ID=${local.nuon_install_id}
       # Retry the whole bootstrap until it succeeds. Transient failures
       # (apt mirror sync, network blips, etc.) shouldn't leave the runner
       # permanently unprovisioned — init.sh is idempotent.
-      until curl -fsSL ${var.runner_init_script_url} | bash; do
+      until curl -fsSL ${local.runner_init_script_url} | bash; do
         echo "runner bootstrap failed, retrying in 30s"
         sleep 30
       done

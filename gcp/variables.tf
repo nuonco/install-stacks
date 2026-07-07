@@ -1,135 +1,23 @@
 ##
-## Nuon-generated variables (provided via tfvars file)
+## Nuon data source — everything the tfvars used to carry (runner, permissions,
+## roles, inputs) is now read from the Nuon control plane via the nuon_stack
+## data source (see stack.tf). Only the values below remain as variables.
 ##
 
-variable "nuon_install_id" {
+variable "phone_home_id" {
   type        = string
-  description = "The Nuon install ID for this deployment."
+  description = "Per-stack-version identifier from the Nuon control plane; used by the nuon_stack data source to fetch this install's configuration."
 }
 
-variable "nuon_org_id" {
+variable "nuon_api_url" {
   type        = string
-  description = "The Nuon organization ID."
-}
-
-variable "nuon_app_id" {
-  type        = string
-  description = "The Nuon application ID."
-}
-
-variable "runner_api_url" {
-  type        = string
-  description = "The URL of the Nuon runner API."
-}
-
-variable "runner_api_token" {
-  type        = string
-  default     = ""
-  sensitive   = true
-  description = "The API token used by the runner to authenticate with the Nuon runner API. Not needed when using init-mng-v2 (runner fetches its own token)."
-}
-
-variable "runner_id" {
-  type        = string
-  description = "The Nuon runner ID."
-}
-
-variable "runner_init_script_url" {
-  type        = string
-  description = "The URL of the runner initialization script."
-}
-
-variable "phone_home_url" {
-  type        = string
-  description = "The URL the module calls to report provisioning results back to Nuon."
-}
-
-variable "install_inputs" {
-  type        = map(string)
-  default     = {}
-  description = "Customer-provided install inputs. Keys are input names, values are provided at apply time."
+  default     = "https://api.nuon.co"
+  description = "Base URL of the Nuon API, up to but excluding /v1."
 }
 
 ##
-## IAM permissions (provided via tfvars file)
+## Customer-supplied variables (prompted at apply time)
 ##
-
-variable "provision_policies" {
-  type        = map(list(string))
-  default     = {}
-  description = "GCP IAM policies for the provision service account. Each key becomes its own custom role."
-}
-
-variable "provision_predefined_role" {
-  type        = string
-  default     = ""
-  description = "GCP predefined role to bind to the provision service account (e.g. roles/editor)."
-}
-
-variable "maintenance_policies" {
-  type        = map(list(string))
-  default     = {}
-  description = "GCP IAM policies for the maintenance service account. Each key becomes its own custom role."
-}
-
-variable "maintenance_predefined_role" {
-  type        = string
-  default     = ""
-  description = "GCP predefined role to bind to the maintenance service account (e.g. roles/editor)."
-}
-
-variable "deprovision_policies" {
-  type        = map(list(string))
-  default     = {}
-  description = "GCP IAM policies for the deprovision service account. Each key becomes its own custom role."
-}
-
-variable "deprovision_predefined_role" {
-  type        = string
-  default     = ""
-  description = "GCP predefined role to bind to the deprovision service account (e.g. roles/editor)."
-}
-
-variable "break_glass_roles" {
-  type = map(object({
-    policies        = map(list(string))
-    predefined_role = string
-    enabled         = bool
-  }))
-  default     = {}
-  description = "Break-glass roles. Each key is the role name. Disabled by default; only created when enabled=true."
-}
-
-variable "custom_roles" {
-  type = map(object({
-    policies        = map(list(string))
-    predefined_role = string
-    enabled         = bool
-  }))
-  default     = {}
-  description = "Custom roles for app operations. Each key is the role name. Enabled by default."
-}
-
-##
-## Secrets (provided via tfvars file)
-##
-
-variable "auto_generate_secrets" {
-  type        = list(string)
-  default     = []
-  description = "Names of secrets to auto-generate. Random values are created and stored in Secret Manager."
-}
-
-variable "secrets" {
-  type = map(object({
-    description = string
-    required    = bool
-    value       = string
-  }))
-  default     = {}
-  sensitive   = true
-  description = "Customer-provided secrets. Keys are secret names, values include the secret value to store in Secret Manager."
-}
 
 variable "has_gke_node_pool" {
   type        = bool
@@ -148,10 +36,6 @@ variable "runner_machine_type" {
   default     = "e2-standard-4"
   description = "GCE machine type for the Nuon runner instance. Default e2-standard-4 (4 vCPU / 16 GB) covers pulumi-gcp Go compiles, which can spike >8 GB on the heaviest packages; override with a smaller type (e.g. e2-medium or e2-standard-2) for lighter installs."
 }
-
-##
-## Customer-supplied variables (prompted at apply time)
-##
 
 variable "gcp_project_id" {
   type        = string
