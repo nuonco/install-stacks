@@ -9,7 +9,7 @@ variable "phone_home_id" {
   description = "Per-stack-version identifier from the Nuon control plane; used by the stack_config data source to fetch this install's configuration."
 }
 
-variable "nuon_api_url" {
+variable "api_url" {
   type        = string
   default     = "https://api.nuon.co"
   description = "Base URL of the Nuon API, up to but excluding /v1."
@@ -43,14 +43,12 @@ variable "runner_machine_type" {
   description = "GCE machine type for the Nuon runner instance. Default e2-standard-4 (4 vCPU / 16 GB) covers pulumi-gcp Go compiles, which can spike >8 GB on the heaviest packages; override with a smaller type (e.g. e2-medium or e2-standard-2) for lighter installs."
 }
 
-variable "gcp_project_id" {
-  type        = string
-  description = "The GCP project ID where Nuon runner infrastructure will be provisioned. The customer provides this value."
-}
-
-variable "gcp_region" {
-  type        = string
-  description = "The GCP region where Nuon runner infrastructure will be provisioned. The customer provides this value."
+variable "gcp" {
+  type = object({
+    project_id = string
+    region     = string
+  })
+  description = "Customer-supplied GCP target: the project ID and region where Nuon runner infrastructure will be provisioned."
 
   validation {
     condition = contains([
@@ -97,7 +95,7 @@ variable "gcp_region" {
       "us-west2",
       "us-west3",
       "us-west4",
-    ], var.gcp_region)
-    error_message = "The gcp_region must be a valid GCP region (e.g. us-central1, europe-west1, asia-east1)."
+    ], var.gcp.region)
+    error_message = "The gcp.region must be a valid GCP region (e.g. us-central1, europe-west1, asia-east1)."
   }
 }

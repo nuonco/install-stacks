@@ -27,7 +27,7 @@ resource "google_project_iam_custom_role" "runner_instance_read" {
 }
 
 resource "google_project_iam_member" "runner_instance_read" {
-  project = var.gcp_project_id
+  project = local.gcp_project_id
   role    = google_project_iam_custom_role.runner_instance_read.id
   member  = "serviceAccount:${google_service_account.runner.email}"
 }
@@ -49,28 +49,28 @@ resource "google_service_account" "gke_nodes" {
 
 resource "google_project_iam_member" "gke_nodes_log_writer" {
   count   = local.create_gke_node_pool_sa ? 1 : 0
-  project = var.gcp_project_id
+  project = local.gcp_project_id
   role    = "roles/logging.logWriter"
   member  = "serviceAccount:${google_service_account.gke_nodes[0].email}"
 }
 
 resource "google_project_iam_member" "gke_nodes_metric_writer" {
   count   = local.create_gke_node_pool_sa ? 1 : 0
-  project = var.gcp_project_id
+  project = local.gcp_project_id
   role    = "roles/monitoring.metricWriter"
   member  = "serviceAccount:${google_service_account.gke_nodes[0].email}"
 }
 
 resource "google_project_iam_member" "gke_nodes_monitoring_viewer" {
   count   = local.create_gke_node_pool_sa ? 1 : 0
-  project = var.gcp_project_id
+  project = local.gcp_project_id
   role    = "roles/monitoring.viewer"
   member  = "serviceAccount:${google_service_account.gke_nodes[0].email}"
 }
 
 resource "google_project_iam_member" "gke_nodes_artifact_reader" {
   count   = local.create_gke_node_pool_sa ? 1 : 0
-  project = var.gcp_project_id
+  project = local.gcp_project_id
   role    = "roles/artifactregistry.reader"
   member  = "serviceAccount:${google_service_account.gke_nodes[0].email}"
 }
@@ -105,14 +105,14 @@ resource "google_project_iam_custom_role" "provision" {
 
 resource "google_project_iam_member" "provision_custom_role" {
   for_each = local.provision_policies
-  project  = var.gcp_project_id
+  project  = local.gcp_project_id
   role     = google_project_iam_custom_role.provision[each.key].id
   member   = "serviceAccount:${google_service_account.provision[0].email}"
 }
 
 resource "google_project_iam_member" "provision_predefined_role" {
   count   = local.provision_predefined_role != "" ? 1 : 0
-  project = var.gcp_project_id
+  project = local.gcp_project_id
   role    = local.provision_predefined_role
   member  = "serviceAccount:${google_service_account.provision[0].email}"
 }
@@ -154,14 +154,14 @@ resource "google_project_iam_custom_role" "maintenance" {
 
 resource "google_project_iam_member" "maintenance_custom_role" {
   for_each = local.maintenance_policies
-  project  = var.gcp_project_id
+  project  = local.gcp_project_id
   role     = google_project_iam_custom_role.maintenance[each.key].id
   member   = "serviceAccount:${google_service_account.maintenance[0].email}"
 }
 
 resource "google_project_iam_member" "maintenance_predefined_role" {
   count   = local.maintenance_predefined_role != "" ? 1 : 0
-  project = var.gcp_project_id
+  project = local.gcp_project_id
   role    = local.maintenance_predefined_role
   member  = "serviceAccount:${google_service_account.maintenance[0].email}"
 }
@@ -203,14 +203,14 @@ resource "google_project_iam_custom_role" "deprovision" {
 
 resource "google_project_iam_member" "deprovision_custom_role" {
   for_each = local.deprovision_policies
-  project  = var.gcp_project_id
+  project  = local.gcp_project_id
   role     = google_project_iam_custom_role.deprovision[each.key].id
   member   = "serviceAccount:${google_service_account.deprovision[0].email}"
 }
 
 resource "google_project_iam_member" "deprovision_predefined_role" {
   count   = local.deprovision_predefined_role != "" ? 1 : 0
-  project = var.gcp_project_id
+  project = local.gcp_project_id
   role    = local.deprovision_predefined_role
   member  = "serviceAccount:${google_service_account.deprovision[0].email}"
 }
@@ -255,14 +255,14 @@ resource "google_project_iam_custom_role" "break_glass" {
 
 resource "google_project_iam_member" "break_glass_custom_role" {
   for_each = local.break_glass_role_policies
-  project  = var.gcp_project_id
+  project  = local.gcp_project_id
   role     = google_project_iam_custom_role.break_glass[each.key].id
   member   = "serviceAccount:${google_service_account.break_glass[each.value.role_key].email}"
 }
 
 resource "google_project_iam_member" "break_glass_predefined_role" {
   for_each = { for k, v in local.enabled_break_glass_roles : k => v if v.predefined_role != "" }
-  project  = var.gcp_project_id
+  project  = local.gcp_project_id
   role     = each.value.predefined_role
   member   = "serviceAccount:${google_service_account.break_glass[each.key].email}"
 }
@@ -307,14 +307,14 @@ resource "google_project_iam_custom_role" "custom" {
 
 resource "google_project_iam_member" "custom_custom_role" {
   for_each = local.custom_role_policies
-  project  = var.gcp_project_id
+  project  = local.gcp_project_id
   role     = google_project_iam_custom_role.custom[each.key].id
   member   = "serviceAccount:${google_service_account.custom[each.value.role_key].email}"
 }
 
 resource "google_project_iam_member" "custom_predefined_role" {
   for_each = { for k, v in local.enabled_custom_roles : k => v if v.predefined_role != "" }
-  project  = var.gcp_project_id
+  project  = local.gcp_project_id
   role     = each.value.predefined_role
   member   = "serviceAccount:${google_service_account.custom[each.key].email}"
 }

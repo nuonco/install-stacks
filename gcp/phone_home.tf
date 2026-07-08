@@ -8,8 +8,8 @@ locals {
   # request_type and phone_home_type are injected by the stack_phone_home
   # resource from its lifecycle and phone_home_type attribute.
   phone_home_payload = merge({
-    project_id                       = var.gcp_project_id
-    region                           = var.gcp_region
+    project_id                       = local.gcp_project_id
+    region                           = local.gcp_region
     network_name                     = google_compute_network.main.name
     network_id                       = google_compute_network.main.id
     public_subnet_name               = google_compute_subnetwork.public.name
