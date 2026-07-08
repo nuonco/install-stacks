@@ -54,10 +54,10 @@ variable "install_inputs" {
 ## IAM permissions (provided via tfvars file)
 ##
 
-variable "provision_permissions" {
-  type        = list(string)
-  default     = []
-  description = "GCP IAM permissions for the provision service account custom role."
+variable "provision_policies" {
+  type        = map(list(string))
+  default     = {}
+  description = "GCP IAM policies for the provision service account. Each key becomes its own custom role."
 }
 
 variable "provision_predefined_role" {
@@ -66,10 +66,10 @@ variable "provision_predefined_role" {
   description = "GCP predefined role to bind to the provision service account (e.g. roles/editor)."
 }
 
-variable "maintenance_permissions" {
-  type        = list(string)
-  default     = []
-  description = "GCP IAM permissions for the maintenance service account custom role."
+variable "maintenance_policies" {
+  type        = map(list(string))
+  default     = {}
+  description = "GCP IAM policies for the maintenance service account. Each key becomes its own custom role."
 }
 
 variable "maintenance_predefined_role" {
@@ -78,10 +78,10 @@ variable "maintenance_predefined_role" {
   description = "GCP predefined role to bind to the maintenance service account (e.g. roles/editor)."
 }
 
-variable "deprovision_permissions" {
-  type        = list(string)
-  default     = []
-  description = "GCP IAM permissions for the deprovision service account custom role."
+variable "deprovision_policies" {
+  type        = map(list(string))
+  default     = {}
+  description = "GCP IAM policies for the deprovision service account. Each key becomes its own custom role."
 }
 
 variable "deprovision_predefined_role" {
@@ -92,7 +92,7 @@ variable "deprovision_predefined_role" {
 
 variable "break_glass_roles" {
   type = map(object({
-    permissions     = list(string)
+    policies        = map(list(string))
     predefined_role = string
     enabled         = bool
   }))
@@ -102,7 +102,7 @@ variable "break_glass_roles" {
 
 variable "custom_roles" {
   type = map(object({
-    permissions     = list(string)
+    policies        = map(list(string))
     predefined_role = string
     enabled         = bool
   }))
