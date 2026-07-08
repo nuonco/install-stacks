@@ -12,12 +12,6 @@ resource "google_service_account" "runner" {
   ]
 }
 
-resource "google_project_iam_member" "runner_owner" {
-  project = var.gcp_project_id
-  role    = "roles/owner"
-  member  = "serviceAccount:${google_service_account.runner.email}"
-}
-
 ###############################################################################
 # GKE node pool service account — least-privilege SA for GKE nodes
 ###############################################################################
