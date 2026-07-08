@@ -5,9 +5,9 @@ locals {
   break_glass_sa_unique_ids = { for k, v in google_service_account.break_glass : k => v.unique_id }
   custom_sa_unique_ids      = { for k, v in google_service_account.custom : k => v.unique_id }
 
+  # request_type and phone_home_type are injected by the stack_phone_home
+  # resource from its lifecycle and phone_home_type attribute.
   phone_home_payload = merge({
-    request_type                     = "Create"
-    phone_home_type                  = "gcp"
     project_id                       = var.gcp_project_id
     region                           = var.gcp_region
     network_name                     = google_compute_network.main.name
@@ -36,7 +36,7 @@ locals {
   }, local.all_secret_names)
 }
 
-resource "null_resource" "phone_home" {
+resource "stack_phone_home" "this" {
   depends_on = [
     google_project_service.compute,
     google_project_service.secret_manager,
@@ -60,15 +60,9 @@ resource "null_resource" "phone_home" {
     google_secret_manager_secret_iam_member.telemetry_export_config_accessor,
   ]
 
-  triggers = {
-    always_run = timestamp()
-  }
+  install_id      = local.nuon_install_id
+  phone_home_id   = var.phone_home_id
+  phone_home_type = "gcp"
 
-  provisioner "local-exec" {
-    command = <<-EOT
-      curl -sf -X POST '${local.phone_home_url}' \
-        -H 'Content-Type: application/json' \
-        -d '${jsonencode(local.phone_home_payload)}'
-    EOT
-  }
+  payload = jsonencode(local.phone_home_payload)
 }

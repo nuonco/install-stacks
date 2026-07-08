@@ -1,12 +1,12 @@
 ##
 ## Nuon data source — everything the tfvars used to carry (runner, permissions,
-## roles, inputs) is now read from the Nuon control plane via the nuon_stack
+## roles, inputs) is now read from the Nuon control plane via the stack_config
 ## data source (see stack.tf). Only the values below remain as variables.
 ##
 
 variable "phone_home_id" {
   type        = string
-  description = "Per-stack-version identifier from the Nuon control plane; used by the nuon_stack data source to fetch this install's configuration."
+  description = "Per-stack-version identifier from the Nuon control plane; used by the stack_config data source to fetch this install's configuration."
 }
 
 variable "nuon_api_url" {
