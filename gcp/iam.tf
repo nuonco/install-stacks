@@ -12,9 +12,23 @@ resource "google_service_account" "runner" {
   ]
 }
 
-resource "google_project_iam_member" "runner_owner" {
+# init-mng-v2 auth: ctl-api independently reads the instance's nuon_runner_id
+# via the Compute API using the runner's own token (the GCP mirror of the AWS
+# ec2:DescribeTags grant), so the runner SA needs compute.instances.get.
+resource "google_project_iam_custom_role" "runner_instance_read" {
+  role_id     = "nuon_r_${md5("runner/${local.prefix}")}"
+  title       = "Nuon runner instance read for ${local.prefix}"
+  permissions = ["compute.instances.get"]
+
+  depends_on = [
+    google_project_service.compute,
+    google_project_service.secret_manager,
+  ]
+}
+
+resource "google_project_iam_member" "runner_instance_read" {
   project = var.gcp_project_id
-  role    = "roles/owner"
+  role    = google_project_iam_custom_role.runner_instance_read.id
   member  = "serviceAccount:${google_service_account.runner.email}"
 }
 
@@ -77,10 +91,11 @@ resource "google_service_account" "provision" {
 }
 
 resource "google_project_iam_custom_role" "provision" {
-  count       = local.has_provision_custom ? 1 : 0
-  role_id     = "${substr(local.role_id_prefix, 0, 50)}_provision"
-  title       = "Nuon provision role for ${local.prefix}"
-  permissions = var.provision_permissions
+  for_each    = var.provision_policies
+  role_id     = "nuon_p_${md5("provision/${local.prefix}/${each.key}")}"
+  title       = substr(each.key, 0, 100)
+  description = "Nuon provision policy for ${local.prefix}: ${each.key}"
+  permissions = each.value
 
   depends_on = [
     google_project_service.compute,
@@ -89,10 +104,10 @@ resource "google_project_iam_custom_role" "provision" {
 }
 
 resource "google_project_iam_member" "provision_custom_role" {
-  count   = local.has_provision_custom ? 1 : 0
-  project = var.gcp_project_id
-  role    = google_project_iam_custom_role.provision[0].id
-  member  = "serviceAccount:${google_service_account.provision[0].email}"
+  for_each = var.provision_policies
+  project  = var.gcp_project_id
+  role     = google_project_iam_custom_role.provision[each.key].id
+  member   = "serviceAccount:${google_service_account.provision[0].email}"
 }
 
 resource "google_project_iam_member" "provision_predefined_role" {
@@ -125,10 +140,11 @@ resource "google_service_account" "maintenance" {
 }
 
 resource "google_project_iam_custom_role" "maintenance" {
-  count       = local.has_maintenance_custom ? 1 : 0
-  role_id     = "${substr(local.role_id_prefix, 0, 47)}_maintenance"
-  title       = "Nuon maintenance role for ${local.prefix}"
-  permissions = var.maintenance_permissions
+  for_each    = var.maintenance_policies
+  role_id     = "nuon_m_${md5("maintenance/${local.prefix}/${each.key}")}"
+  title       = substr(each.key, 0, 100)
+  description = "Nuon maintenance policy for ${local.prefix}: ${each.key}"
+  permissions = each.value
 
   depends_on = [
     google_project_service.compute,
@@ -137,10 +153,10 @@ resource "google_project_iam_custom_role" "maintenance" {
 }
 
 resource "google_project_iam_member" "maintenance_custom_role" {
-  count   = local.has_maintenance_custom ? 1 : 0
-  project = var.gcp_project_id
-  role    = google_project_iam_custom_role.maintenance[0].id
-  member  = "serviceAccount:${google_service_account.maintenance[0].email}"
+  for_each = var.maintenance_policies
+  project  = var.gcp_project_id
+  role     = google_project_iam_custom_role.maintenance[each.key].id
+  member   = "serviceAccount:${google_service_account.maintenance[0].email}"
 }
 
 resource "google_project_iam_member" "maintenance_predefined_role" {
@@ -173,10 +189,11 @@ resource "google_service_account" "deprovision" {
 }
 
 resource "google_project_iam_custom_role" "deprovision" {
-  count       = local.has_deprovision_custom ? 1 : 0
-  role_id     = "${substr(local.role_id_prefix, 0, 47)}_deprovision"
-  title       = "Nuon deprovision role for ${local.prefix}"
-  permissions = var.deprovision_permissions
+  for_each    = var.deprovision_policies
+  role_id     = "nuon_d_${md5("deprovision/${local.prefix}/${each.key}")}"
+  title       = substr(each.key, 0, 100)
+  description = "Nuon deprovision policy for ${local.prefix}: ${each.key}"
+  permissions = each.value
 
   depends_on = [
     google_project_service.compute,
@@ -185,10 +202,10 @@ resource "google_project_iam_custom_role" "deprovision" {
 }
 
 resource "google_project_iam_member" "deprovision_custom_role" {
-  count   = local.has_deprovision_custom ? 1 : 0
-  project = var.gcp_project_id
-  role    = google_project_iam_custom_role.deprovision[0].id
-  member  = "serviceAccount:${google_service_account.deprovision[0].email}"
+  for_each = var.deprovision_policies
+  project  = var.gcp_project_id
+  role     = google_project_iam_custom_role.deprovision[each.key].id
+  member   = "serviceAccount:${google_service_account.deprovision[0].email}"
 }
 
 resource "google_project_iam_member" "deprovision_predefined_role" {
@@ -224,10 +241,10 @@ resource "google_service_account" "break_glass" {
 }
 
 resource "google_project_iam_custom_role" "break_glass" {
-  for_each    = { for k, v in local.enabled_break_glass_roles : k => v if length(v.permissions) > 0 }
-  role_id     = local.break_glass_role_ids[each.key]
-  title       = each.key
-  description = "Nuon break-glass role: ${each.key}"
+  for_each    = local.break_glass_role_policies
+  role_id     = local.break_glass_policy_role_ids[each.key]
+  title       = substr("${each.value.role_key}: ${each.value.policy_name}", 0, 100)
+  description = "Nuon break-glass policy: ${each.key}"
   permissions = each.value.permissions
 
   depends_on = [
@@ -237,10 +254,10 @@ resource "google_project_iam_custom_role" "break_glass" {
 }
 
 resource "google_project_iam_member" "break_glass_custom_role" {
-  for_each = { for k, v in local.enabled_break_glass_roles : k => v if length(v.permissions) > 0 }
+  for_each = local.break_glass_role_policies
   project  = var.gcp_project_id
   role     = google_project_iam_custom_role.break_glass[each.key].id
-  member   = "serviceAccount:${google_service_account.break_glass[each.key].email}"
+  member   = "serviceAccount:${google_service_account.break_glass[each.value.role_key].email}"
 }
 
 resource "google_project_iam_member" "break_glass_predefined_role" {
@@ -276,10 +293,10 @@ resource "google_service_account" "custom" {
 }
 
 resource "google_project_iam_custom_role" "custom" {
-  for_each    = { for k, v in local.enabled_custom_roles : k => v if length(v.permissions) > 0 }
-  role_id     = local.custom_role_ids[each.key]
-  title       = each.key
-  description = "Nuon custom role: ${each.key}"
+  for_each    = local.custom_role_policies
+  role_id     = local.custom_policy_role_ids[each.key]
+  title       = substr("${each.value.role_key}: ${each.value.policy_name}", 0, 100)
+  description = "Nuon custom role policy: ${each.key}"
   permissions = each.value.permissions
 
   depends_on = [
@@ -289,10 +306,10 @@ resource "google_project_iam_custom_role" "custom" {
 }
 
 resource "google_project_iam_member" "custom_custom_role" {
-  for_each = { for k, v in local.enabled_custom_roles : k => v if length(v.permissions) > 0 }
+  for_each = local.custom_role_policies
   project  = var.gcp_project_id
   role     = google_project_iam_custom_role.custom[each.key].id
-  member   = "serviceAccount:${google_service_account.custom[each.key].email}"
+  member   = "serviceAccount:${google_service_account.custom[each.value.role_key].email}"
 }
 
 resource "google_project_iam_member" "custom_predefined_role" {

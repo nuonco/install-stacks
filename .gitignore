@@ -4,3 +4,6 @@
 *.tfplan
 
 install.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/

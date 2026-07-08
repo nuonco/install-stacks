@@ -1,15 +1,10 @@
 locals {
-  prefix         = var.nuon_install_id
-  region         = var.gcp_region
-  role_id_prefix = replace(var.nuon_install_id, "-", "_")
+  prefix = var.nuon_install_id
+  region = var.gcp_region
 
-  has_provision   = length(var.provision_permissions) > 0 || var.provision_predefined_role != ""
-  has_maintenance = length(var.maintenance_permissions) > 0 || var.maintenance_predefined_role != ""
-  has_deprovision = length(var.deprovision_permissions) > 0 || var.deprovision_predefined_role != ""
-
-  has_provision_custom   = length(var.provision_permissions) > 0
-  has_maintenance_custom = length(var.maintenance_permissions) > 0
-  has_deprovision_custom = length(var.deprovision_permissions) > 0
+  has_provision   = length(var.provision_policies) > 0 || var.provision_predefined_role != ""
+  has_maintenance = length(var.maintenance_policies) > 0 || var.maintenance_predefined_role != ""
+  has_deprovision = length(var.deprovision_policies) > 0 || var.deprovision_predefined_role != ""
 
   # Filter to only enabled roles
   enabled_break_glass_roles = { for k, v in var.break_glass_roles : k => v if v.enabled }
@@ -31,16 +26,32 @@ locals {
     for k in keys(local.enabled_custom_roles) :
     k => "nc-${substr(md5("custom/${local.prefix}/${k}"), 0, 24)}"
   }
-  custom_role_ids = {
-    for k in keys(local.enabled_custom_roles) :
-    k => "nuon_c_${md5("custom/${local.prefix}/${k}")}"
-  }
   break_glass_account_ids = {
     for k in keys(local.enabled_break_glass_roles) :
     k => "nbg-${substr(md5("break_glass/${local.prefix}/${k}"), 0, 23)}"
   }
-  break_glass_role_ids = {
-    for k in keys(local.enabled_break_glass_roles) :
+
+  # One custom role per policy, mirroring the AWS one-policy-one-attachment
+  # shape. Flattened to "{role key}:{policy name}" for_each keys; role ids use
+  # the same hash scheme as the account ids above.
+  custom_role_policies = merge([
+    for rk, rv in local.enabled_custom_roles : {
+      for pk, pv in rv.policies :
+      "${rk}:${pk}" => { role_key = rk, policy_name = pk, permissions = pv }
+    }
+  ]...)
+  custom_policy_role_ids = {
+    for k in keys(local.custom_role_policies) :
+    k => "nuon_c_${md5("custom/${local.prefix}/${k}")}"
+  }
+  break_glass_role_policies = merge([
+    for rk, rv in local.enabled_break_glass_roles : {
+      for pk, pv in rv.policies :
+      "${rk}:${pk}" => { role_key = rk, policy_name = pk, permissions = pv }
+    }
+  ]...)
+  break_glass_policy_role_ids = {
+    for k in keys(local.break_glass_role_policies) :
     k => "nuon_bg_${md5("break_glass/${local.prefix}/${k}")}"
   }
 
