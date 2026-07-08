@@ -111,10 +111,10 @@ resource "google_project_iam_member" "provision_custom_role" {
 }
 
 resource "google_project_iam_member" "provision_predefined_role" {
-  count   = var.provision_predefined_role != "" ? 1 : 0
-  project = var.gcp_project_id
-  role    = var.provision_predefined_role
-  member  = "serviceAccount:${google_service_account.provision[0].email}"
+  for_each = toset(var.provision_predefined_roles)
+  project  = var.gcp_project_id
+  role     = each.value
+  member   = "serviceAccount:${google_service_account.provision[0].email}"
 }
 
 resource "google_service_account_iam_member" "provision_token_creator" {
@@ -160,10 +160,10 @@ resource "google_project_iam_member" "maintenance_custom_role" {
 }
 
 resource "google_project_iam_member" "maintenance_predefined_role" {
-  count   = var.maintenance_predefined_role != "" ? 1 : 0
-  project = var.gcp_project_id
-  role    = var.maintenance_predefined_role
-  member  = "serviceAccount:${google_service_account.maintenance[0].email}"
+  for_each = toset(var.maintenance_predefined_roles)
+  project  = var.gcp_project_id
+  role     = each.value
+  member   = "serviceAccount:${google_service_account.maintenance[0].email}"
 }
 
 resource "google_service_account_iam_member" "maintenance_token_creator" {
@@ -209,10 +209,10 @@ resource "google_project_iam_member" "deprovision_custom_role" {
 }
 
 resource "google_project_iam_member" "deprovision_predefined_role" {
-  count   = var.deprovision_predefined_role != "" ? 1 : 0
-  project = var.gcp_project_id
-  role    = var.deprovision_predefined_role
-  member  = "serviceAccount:${google_service_account.deprovision[0].email}"
+  for_each = toset(var.deprovision_predefined_roles)
+  project  = var.gcp_project_id
+  role     = each.value
+  member   = "serviceAccount:${google_service_account.deprovision[0].email}"
 }
 
 resource "google_service_account_iam_member" "deprovision_token_creator" {
@@ -261,10 +261,10 @@ resource "google_project_iam_member" "break_glass_custom_role" {
 }
 
 resource "google_project_iam_member" "break_glass_predefined_role" {
-  for_each = { for k, v in local.enabled_break_glass_roles : k => v if v.predefined_role != "" }
+  for_each = local.break_glass_role_predefined
   project  = var.gcp_project_id
-  role     = each.value.predefined_role
-  member   = "serviceAccount:${google_service_account.break_glass[each.key].email}"
+  role     = each.value.role
+  member   = "serviceAccount:${google_service_account.break_glass[each.value.role_key].email}"
 }
 
 resource "google_service_account_iam_member" "break_glass_token_creator" {
@@ -313,10 +313,10 @@ resource "google_project_iam_member" "custom_custom_role" {
 }
 
 resource "google_project_iam_member" "custom_predefined_role" {
-  for_each = { for k, v in local.enabled_custom_roles : k => v if v.predefined_role != "" }
+  for_each = local.custom_role_predefined
   project  = var.gcp_project_id
-  role     = each.value.predefined_role
-  member   = "serviceAccount:${google_service_account.custom[each.key].email}"
+  role     = each.value.role
+  member   = "serviceAccount:${google_service_account.custom[each.value.role_key].email}"
 }
 
 resource "google_service_account_iam_member" "custom_token_creator" {

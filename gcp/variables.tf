@@ -60,10 +60,10 @@ variable "provision_policies" {
   description = "GCP IAM policies for the provision service account. Each key becomes its own custom role."
 }
 
-variable "provision_predefined_role" {
-  type        = string
-  default     = ""
-  description = "GCP predefined role to bind to the provision service account (e.g. roles/editor)."
+variable "provision_predefined_roles" {
+  type        = list(string)
+  default     = []
+  description = "GCP predefined roles to bind to the provision service account (e.g. roles/container.admin)."
 }
 
 variable "maintenance_policies" {
@@ -72,10 +72,10 @@ variable "maintenance_policies" {
   description = "GCP IAM policies for the maintenance service account. Each key becomes its own custom role."
 }
 
-variable "maintenance_predefined_role" {
-  type        = string
-  default     = ""
-  description = "GCP predefined role to bind to the maintenance service account (e.g. roles/editor)."
+variable "maintenance_predefined_roles" {
+  type        = list(string)
+  default     = []
+  description = "GCP predefined roles to bind to the maintenance service account (e.g. roles/container.admin)."
 }
 
 variable "deprovision_policies" {
@@ -84,17 +84,17 @@ variable "deprovision_policies" {
   description = "GCP IAM policies for the deprovision service account. Each key becomes its own custom role."
 }
 
-variable "deprovision_predefined_role" {
-  type        = string
-  default     = ""
-  description = "GCP predefined role to bind to the deprovision service account (e.g. roles/editor)."
+variable "deprovision_predefined_roles" {
+  type        = list(string)
+  default     = []
+  description = "GCP predefined roles to bind to the deprovision service account (e.g. roles/container.admin)."
 }
 
 variable "break_glass_roles" {
   type = map(object({
-    policies        = map(list(string))
-    predefined_role = string
-    enabled         = bool
+    policies         = map(list(string))
+    predefined_roles = list(string)
+    enabled          = bool
   }))
   default     = {}
   description = "Break-glass roles. Each key is the role name. Disabled by default; only created when enabled=true."
@@ -102,9 +102,9 @@ variable "break_glass_roles" {
 
 variable "custom_roles" {
   type = map(object({
-    policies        = map(list(string))
-    predefined_role = string
-    enabled         = bool
+    policies         = map(list(string))
+    predefined_roles = list(string)
+    enabled          = bool
   }))
   default     = {}
   description = "Custom roles for app operations. Each key is the role name. Enabled by default."

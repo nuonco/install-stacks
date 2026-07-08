@@ -2,9 +2,9 @@ locals {
   prefix = var.nuon_install_id
   region = var.gcp_region
 
-  has_provision   = length(var.provision_policies) > 0 || var.provision_predefined_role != ""
-  has_maintenance = length(var.maintenance_policies) > 0 || var.maintenance_predefined_role != ""
-  has_deprovision = length(var.deprovision_policies) > 0 || var.deprovision_predefined_role != ""
+  has_provision   = length(var.provision_policies) > 0 || length(var.provision_predefined_roles) > 0
+  has_maintenance = length(var.maintenance_policies) > 0 || length(var.maintenance_predefined_roles) > 0
+  has_deprovision = length(var.deprovision_policies) > 0 || length(var.deprovision_predefined_roles) > 0
 
   # Filter to only enabled roles
   enabled_break_glass_roles = { for k, v in var.break_glass_roles : k => v if v.enabled }
@@ -54,6 +54,19 @@ locals {
     for k in keys(local.break_glass_role_policies) :
     k => "nuon_bg_${md5("break_glass/${local.prefix}/${k}")}"
   }
+
+  custom_role_predefined = merge([
+    for rk, rv in local.enabled_custom_roles : {
+      for pr in rv.predefined_roles :
+      "${rk}:${pr}" => { role_key = rk, role = pr }
+    }
+  ]...)
+  break_glass_role_predefined = merge([
+    for rk, rv in local.enabled_break_glass_roles : {
+      for pr in rv.predefined_roles :
+      "${rk}:${pr}" => { role_key = rk, role = pr }
+    }
+  ]...)
 
   # Build secret name maps for phone-home payload
   # Format: {name}_secret_name => projects/{project}/secrets/{id}/versions/latest
