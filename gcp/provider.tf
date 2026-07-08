@@ -1,4 +1,4 @@
 provider "google" {
-  project = var.gcp_project_id
-  region  = var.gcp_region
+  project = local.gcp_project_id
+  region  = local.gcp_region
 }

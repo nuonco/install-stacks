@@ -8,7 +8,7 @@
 ##
 
 provider "stack" {
-  api_url = var.nuon_api_url
+  api_url = var.api_url
 }
 
 data "stack_config" "this" {
