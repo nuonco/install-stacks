@@ -40,7 +40,27 @@ locals {
   custom_roles      = data.stack_config.this.gcp.custom_roles
 
   # inputs and secrets
-  install_inputs        = data.stack_config.this.install_inputs
+  #
+  # The stack_config data source provides the base values; the install_inputs
+  # and secrets variables layer on top and win. For secrets this is also how
+  # values arrive at all — the API returns metadata (required/description) but
+  # not the secret value.
   auto_generate_secrets = data.stack_config.this.auto_generate_secrets
-  secrets               = data.stack_config.this.secrets
+
+  install_inputs = merge(
+    data.stack_config.this.install_inputs,
+    var.install_inputs,
+  )
+
+  secret_names = toset(concat(
+    keys(data.stack_config.this.secrets),
+    keys(var.secrets),
+  ))
+  secrets = {
+    for k in local.secret_names : k => {
+      description = coalesce(try(var.secrets[k].description, null), try(data.stack_config.this.secrets[k].description, null), "")
+      required    = try(var.secrets[k].required, null) != null ? var.secrets[k].required : try(data.stack_config.this.secrets[k].required, false)
+      value       = try(var.secrets[k].value, "") != "" ? var.secrets[k].value : try(data.stack_config.this.secrets[k].value, "")
+    }
+  }
 }
