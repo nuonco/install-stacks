@@ -16,6 +16,29 @@ variable "api_url" {
 }
 
 ##
+## stack_config overrides — values fetched from the data source are the base;
+## anything set in these variables layers on top and wins. Secret values are
+## supplied here because the API returns secret metadata but not values.
+##
+
+variable "install_inputs" {
+  type        = map(string)
+  default     = {}
+  description = "Install input overrides, keyed by name. Merged over install_inputs from the stack_config data source; keys set here win."
+}
+
+variable "secrets" {
+  type = map(object({
+    description = optional(string)
+    required    = optional(bool)
+    value       = optional(string)
+  }))
+  default     = {}
+  sensitive   = true
+  description = "Secret overrides keyed by name. Any field set here layers over (wins against) the value from the stack_config data source. Secret values are supplied here since the API does not return them."
+}
+
+##
 ## Customer-supplied variables (prompted at apply time)
 ##
 
