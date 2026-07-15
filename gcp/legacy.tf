@@ -61,6 +61,13 @@ variable "gcp_project_id" {
   type        = string
   default     = ""
   description = "Legacy flat GCP project ID. Superseded by gcp = { project_id }."
+
+  # Legacy flow (phone_home_id empty) requires the flat project/region vars. On
+  # gcp_project_id so the error references the flat vars, not the gcp object.
+  validation {
+    condition     = var.phone_home_id != "" || (var.gcp_project_id != "" && var.gcp_region != "")
+    error_message = "Set gcp_project_id and gcp_region in your tfvars."
+  }
 }
 
 variable "gcp_region" {
