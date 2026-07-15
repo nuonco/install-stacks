@@ -6,7 +6,8 @@
 
 variable "phone_home_id" {
   type        = string
-  description = "Per-stack-version identifier from the Nuon control plane; used by the stack_config data source to fetch this install's configuration."
+  default     = ""
+  description = "Per-stack-version identifier from the Nuon control plane; used by the stack_config data source to fetch this install's configuration. When empty, the data source is not read and all values must come from the legacy variables (see legacy.tf)."
 }
 
 variable "api_url" {
@@ -58,10 +59,11 @@ variable "aws" {
   type = object({
     region = string
   })
-  description = "Customer-supplied AWS target: the region where Nuon runner infrastructure will be provisioned."
+  default     = null
+  description = "Customer-supplied AWS target: the region where Nuon runner infrastructure will be provisioned. Optional — when unset, the legacy aws_region variable or the stack_config data source region is used."
 
   validation {
-    condition = contains([
+    condition = var.aws == null ? true : contains([
       "us-east-1",
       "us-east-2",
       "us-west-1",
