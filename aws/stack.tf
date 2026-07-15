@@ -36,7 +36,7 @@ locals {
   phone_home_url = var.phone_home_url != "" ? var.phone_home_url : (local.cfg_present ? data.stack_config.this[0].phone_home_url : "")
 
   # customer-supplied region: new object, else legacy flat var, else data source
-  region = coalesce(try(var.aws.region, ""), var.aws_region, local.cfg_present ? data.stack_config.this[0].aws.region : "")
+  region = var.aws != null ? var.aws.region : (var.aws_region != "" ? var.aws_region : (local.cfg_present ? data.stack_config.this[0].aws.region : ""))
 
   # machine type from the data source (Nuon app runner config), else platform default
   runner_machine_type = local.cfg_present ? data.stack_config.this[0].aws.runner_machine_type : "t3a.medium"
