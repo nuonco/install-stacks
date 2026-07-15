@@ -37,6 +37,9 @@ locals {
   runner_init_script_url = var.runner_init_script_url != "" ? var.runner_init_script_url : (local.cfg_present ? data.stack_config.this[0].gcp.runner_init_script_url : "")
   phone_home_url         = var.phone_home_url != "" ? var.phone_home_url : (local.cfg_present ? data.stack_config.this[0].phone_home_url : "")
 
+  # machine type: override var wins (legacy tfvars set it); else data source; else platform default
+  runner_machine_type = var.runner_machine_type != "" ? var.runner_machine_type : (local.cfg_present ? data.stack_config.this[0].gcp.runner_machine_type : "e2-medium")
+
   # operation-role policies (one custom role per policy) + predefined roles
   provision_policies          = length(var.provision_policies) > 0 ? var.provision_policies : (local.cfg_present ? data.stack_config.this[0].gcp.provision_policies : {})
   provision_predefined_role   = var.provision_predefined_role != "" ? var.provision_predefined_role : (local.cfg_present ? data.stack_config.this[0].gcp.provision_predefined_role : "")

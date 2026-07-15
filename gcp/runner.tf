@@ -2,7 +2,7 @@ resource "google_compute_instance_template" "runner" {
   count = var.runner_enabled ? 1 : 0
 
   name_prefix  = "${local.prefix}-runner-"
-  machine_type = var.runner_machine_type
+  machine_type = local.runner_machine_type
   region       = local.region
   labels       = local.labels
   tags         = ["nuon-runner"]

@@ -63,8 +63,8 @@ variable "runner_enabled" {
 
 variable "runner_machine_type" {
   type        = string
-  default     = "e2-medium"
-  description = "GCE machine type for the Nuon runner instance. Defaults to e2-medium to match ctl-api's DefaultGCPInstanceType; override with a larger type (e.g. e2-standard-4) for heavier installs — pulumi-gcp Go compiles can spike >8 GB."
+  default     = ""
+  description = "Optional override for the GCE machine type of the Nuon runner instance. When empty, the type is read from the stack_config data source (Nuon app runner config), falling back to e2-medium. Legacy tfvars set this directly."
 }
 
 variable "gcp" {
