@@ -17,4 +17,5 @@ module "runner" {
   runner_api_url               = local.runner_api_url
   runner_id                    = local.runner_id
   nuon_install_id              = local.nuon_install_id
+  instance_type                = local.runner_machine_type
 }
