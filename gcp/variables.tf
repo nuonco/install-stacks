@@ -63,8 +63,8 @@ variable "runner_enabled" {
 
 variable "runner_machine_type" {
   type        = string
-  default     = "e2-standard-4"
-  description = "GCE machine type for the Nuon runner instance. Default e2-standard-4 (4 vCPU / 16 GB) covers pulumi-gcp Go compiles, which can spike >8 GB on the heaviest packages; override with a smaller type (e.g. e2-medium or e2-standard-2) for lighter installs."
+  default     = "e2-medium"
+  description = "GCE machine type for the Nuon runner instance. Defaults to e2-medium to match ctl-api's DefaultGCPInstanceType; override with a larger type (e.g. e2-standard-4) for heavier installs — pulumi-gcp Go compiles can spike >8 GB."
 }
 
 variable "gcp" {
