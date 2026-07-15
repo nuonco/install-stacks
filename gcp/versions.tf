@@ -15,7 +15,8 @@ terraform {
       version = ">= 3.0"
     }
     stack = {
-      source = "nuonco/stack"
+      source  = "nuonco/stack"
+      version = ">= 0.2.0"
     }
   }
 }
