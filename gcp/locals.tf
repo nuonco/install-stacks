@@ -1,6 +1,6 @@
 locals {
-  gcp_project_id = var.gcp.project_id
-  gcp_region     = var.gcp.region
+  gcp_project_id = var.gcp != null ? var.gcp.project_id : var.gcp_project_id
+  gcp_region     = var.gcp != null ? var.gcp.region : var.gcp_region
 
   prefix = local.nuon_install_id
   region = local.gcp_region
