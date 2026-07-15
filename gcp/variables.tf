@@ -66,11 +66,10 @@ variable "gcp" {
     project_id = string
     region     = string
   })
-  default     = null
-  description = "Customer-supplied GCP target: the project ID and region where Nuon runner infrastructure will be provisioned. Optional — when unset, the legacy gcp_project_id / gcp_region variables are used."
+  description = "Customer-supplied GCP target: the project ID and region where Nuon runner infrastructure will be provisioned. Required (no default) so Terraform prompts when the tfvars don't provide it."
 
   validation {
-    condition = var.gcp == null ? true : contains([
+    condition = contains([
       "africa-south1",
       "asia-east1",
       "asia-east2",
