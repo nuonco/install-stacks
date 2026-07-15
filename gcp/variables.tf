@@ -117,4 +117,14 @@ variable "gcp" {
     ], var.gcp.region)
     error_message = "The gcp.region must be a valid GCP region (e.g. us-central1, europe-west1, asia-east1)."
   }
+
+  # Require a GCP target from exactly one of the two supported shapes: the new
+  # object (gcp = { project_id, region }) or the legacy flat vars
+  # (gcp_project_id + gcp_region). Terraform can't prompt conditionally across
+  # two shapes, so fail with a clear message instead of the opaque google
+  # provider "expected a non-empty string" error.
+  validation {
+    condition     = var.gcp != null || (var.gcp_project_id != "" && var.gcp_region != "")
+    error_message = "Set the GCP target via either gcp = { project_id, region } (provider tfvars) or gcp_project_id + gcp_region (legacy tfvars)."
+  }
 }
