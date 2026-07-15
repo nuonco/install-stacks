@@ -9,7 +9,7 @@
 ##
 
 provider "stack" {
-  api_url = var.api_url
+  api_url = local.api_url_effective
 }
 
 data "stack_config" "this" {
@@ -25,6 +25,13 @@ locals {
   # it from the legacy phone_home_url, whose shape is
   # {base}/v1/installs/{install_id}/phone-home/{phone_home_id}.
   phone_home_id_effective = var.phone_home_id != "" ? var.phone_home_id : try(regex("/phone-home/([^/?#]+)", var.phone_home_url)[0], "")
+
+  # API base for the provider (runner API surface). In the provider flow this is
+  # var.api_url. In the legacy flow (no phone_home_id) the runner API base is the
+  # legacy runner_api_url variable — otherwise the default (runner.nuon.co) would
+  # report to the wrong environment. Must reference var.runner_api_url (not the
+  # data-source-derived local) since provider config cannot depend on a data source.
+  api_url_effective = var.phone_home_id != "" ? var.api_url : (var.runner_api_url != "" ? var.runner_api_url : var.api_url)
 
   # identifiers — legacy var wins, else data source
   nuon_install_id = var.nuon_install_id != "" ? var.nuon_install_id : try(local.cfg.install_id, "")
