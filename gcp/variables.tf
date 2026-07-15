@@ -118,13 +118,15 @@ variable "gcp" {
     error_message = "The gcp.region must be a valid GCP region (e.g. us-central1, europe-west1, asia-east1)."
   }
 
-  # Require a GCP target from exactly one of the two supported shapes: the new
-  # object (gcp = { project_id, region }) or the legacy flat vars
-  # (gcp_project_id + gcp_region). Terraform can't prompt conditionally across
-  # two shapes, so fail with a clear message instead of the opaque google
-  # provider "expected a non-empty string" error.
+  # Require a GCP target, with a message specific to the flow in use (inferred
+  # from phone_home_id: set = provider flow, empty = legacy flow). Only the
+  # validation for the active flow can fail.
   validation {
-    condition     = var.gcp != null || (var.gcp_project_id != "" && var.gcp_region != "")
-    error_message = "Set the GCP target via either gcp = { project_id, region } (provider tfvars) or gcp_project_id + gcp_region (legacy tfvars)."
+    condition     = var.phone_home_id == "" || var.gcp != null
+    error_message = "Set gcp = { project_id = \"...\", region = \"...\" } in your tfvars."
+  }
+  validation {
+    condition     = var.phone_home_id != "" || var.gcp != null || (var.gcp_project_id != "" && var.gcp_region != "")
+    error_message = "Set gcp_project_id and gcp_region in your tfvars."
   }
 }
