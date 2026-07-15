@@ -102,7 +102,7 @@ data "aws_iam_policy_document" "control_plane_assume" {
     actions = ["sts:AssumeRole"]
     principals {
       type = "AWS"
-      identifiers = length(var.nuon_support_iam_role_arns) > 0 ? var.nuon_support_iam_role_arns : [
+      identifiers = length(local.nuon_support_iam_role_arns) > 0 ? local.nuon_support_iam_role_arns : [
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root",
       ]
     }
@@ -138,7 +138,7 @@ resource "aws_iam_role_policy" "provision_inline" {
 }
 
 resource "aws_iam_role_policy_attachment" "provision_managed" {
-  for_each   = local.has_provision ? toset(var.provision_managed_policy_arns) : toset([])
+  for_each   = local.has_provision ? toset(local.provision_managed_policy_arns) : toset([])
   role       = aws_iam_role.provision[0].name
   policy_arn = each.value
 }
@@ -162,7 +162,7 @@ resource "aws_iam_role_policy" "maintenance_inline" {
 }
 
 resource "aws_iam_role_policy_attachment" "maintenance_managed" {
-  for_each   = local.has_maintenance ? toset(var.maintenance_managed_policy_arns) : toset([])
+  for_each   = local.has_maintenance ? toset(local.maintenance_managed_policy_arns) : toset([])
   role       = aws_iam_role.maintenance[0].name
   policy_arn = each.value
 }
@@ -186,7 +186,7 @@ resource "aws_iam_role_policy" "deprovision_inline" {
 }
 
 resource "aws_iam_role_policy_attachment" "deprovision_managed" {
-  for_each   = local.has_deprovision ? toset(var.deprovision_managed_policy_arns) : toset([])
+  for_each   = local.has_deprovision ? toset(local.deprovision_managed_policy_arns) : toset([])
   role       = aws_iam_role.deprovision[0].name
   policy_arn = each.value
 }
