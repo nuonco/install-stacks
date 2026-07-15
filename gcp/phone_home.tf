@@ -36,8 +36,8 @@ locals {
   }, local.all_secret_names)
 }
 
-resource "stack_phone_home" "this" {
-  depends_on = [
+locals {
+  phone_home_depends_on = [
     google_project_service.compute,
     google_project_service.secret_manager,
     google_project_service.iam_credentials,
@@ -59,10 +59,40 @@ resource "stack_phone_home" "this" {
     google_secret_manager_secret.telemetry_export_config,
     google_secret_manager_secret_iam_member.telemetry_export_config_accessor,
   ]
+}
+
+# Provider flow: report via the stack_phone_home resource, keyed by phone_home_id.
+resource "stack_phone_home" "this" {
+  count = var.phone_home_id != "" ? 1 : 0
+
+  depends_on = [local.phone_home_depends_on]
 
   install_id      = local.nuon_install_id
-  phone_home_id   = local.phone_home_id_effective
+  phone_home_id   = var.phone_home_id
   phone_home_type = "gcp"
 
   payload = jsonencode(local.phone_home_payload)
+}
+
+# Legacy flow: no phone_home_id, so POST the payload directly to the phone-home
+# URL from the legacy tfvars (the complete, correct endpoint the control plane
+# rendered). Mirrors the pre-provider behavior and the AWS module.
+resource "null_resource" "phone_home_legacy" {
+  count = var.phone_home_id == "" ? 1 : 0
+
+  depends_on = [local.phone_home_depends_on]
+
+  triggers = {
+    always_run = timestamp()
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      curl -fS --http1.1 \
+        --retry 5 --retry-all-errors --retry-delay 2 --max-time 30 \
+        -X POST '${local.phone_home_url}' \
+        -H 'Content-Type: application/json' \
+        -d '${jsonencode(merge({ request_type = "Create", phone_home_type = "gcp" }, local.phone_home_payload))}'
+    EOT
+  }
 }
