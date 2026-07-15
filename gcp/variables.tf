@@ -123,12 +123,4 @@ variable "gcp" {
     ], var.gcp.region)
     error_message = "The gcp.region must be a valid GCP region (e.g. us-central1, europe-west1, asia-east1)."
   }
-
-  # Provider flow (phone_home_id set) requires the gcp object. The legacy-flow
-  # requirement lives on gcp_project_id (see legacy.tf) so a legacy error
-  # references the flat vars rather than this object.
-  validation {
-    condition     = var.phone_home_id == "" || var.gcp != null
-    error_message = "Set gcp = { project_id = \"...\", region = \"...\" } in your tfvars."
-  }
 }
