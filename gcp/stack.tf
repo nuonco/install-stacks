@@ -21,6 +21,11 @@ locals {
   # The rendered config, or null when no phone_home_id was supplied (legacy flow).
   cfg = one(data.stack_config.this)
 
+  # phone_home_id for reporting. Prefer the explicit variable; otherwise parse
+  # it from the legacy phone_home_url, whose shape is
+  # {base}/v1/installs/{install_id}/phone-home/{phone_home_id}.
+  phone_home_id_effective = var.phone_home_id != "" ? var.phone_home_id : try(regex("/phone-home/([^/?#]+)", var.phone_home_url)[0], "")
+
   # identifiers — legacy var wins, else data source
   nuon_install_id = var.nuon_install_id != "" ? var.nuon_install_id : try(local.cfg.install_id, "")
   nuon_org_id     = var.nuon_org_id != "" ? var.nuon_org_id : try(local.cfg.org_id, "")

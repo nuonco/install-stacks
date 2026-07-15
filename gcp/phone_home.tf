@@ -61,7 +61,7 @@ resource "stack_phone_home" "this" {
   ]
 
   install_id      = local.nuon_install_id
-  phone_home_id   = var.phone_home_id
+  phone_home_id   = local.phone_home_id_effective
   phone_home_type = "gcp"
 
   payload = jsonencode(local.phone_home_payload)
