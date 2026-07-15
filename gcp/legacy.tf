@@ -57,18 +57,6 @@ variable "phone_home_url" {
   description = "Legacy: phone-home URL. Read from stack_config when unset."
 }
 
-variable "gcp_project_id" {
-  type        = string
-  default     = ""
-  description = "Legacy flat GCP project ID. Superseded by gcp = { project_id }."
-}
-
-variable "gcp_region" {
-  type        = string
-  default     = ""
-  description = "Legacy flat GCP region. Superseded by gcp = { region }."
-}
-
 variable "provision_policies" {
   type        = map(list(string))
   default     = {}
