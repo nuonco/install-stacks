@@ -6,13 +6,14 @@
 
 variable "phone_home_id" {
   type        = string
-  description = "Per-stack-version identifier from the Nuon control plane; used by the stack_config data source to fetch this install's configuration."
+  default     = ""
+  description = "Per-stack-version identifier from the Nuon control plane; used by the stack_config data source to fetch this install's configuration. When empty, the data source is not read and all values must come from the legacy variables (see legacy.tf)."
 }
 
 variable "api_url" {
   type        = string
-  default     = "https://api.nuon.co"
-  description = "Base URL of the Nuon API, up to but excluding /v1."
+  default     = "https://runner.nuon.co"
+  description = "Base URL of the Nuon runner API, up to but excluding /v1."
 }
 
 ##
@@ -65,10 +66,11 @@ variable "gcp" {
     project_id = string
     region     = string
   })
-  description = "Customer-supplied GCP target: the project ID and region where Nuon runner infrastructure will be provisioned."
+  default     = null
+  description = "Customer-supplied GCP target: the project ID and region where Nuon runner infrastructure will be provisioned. Optional — when unset, the legacy gcp_project_id / gcp_region variables are used."
 
   validation {
-    condition = contains([
+    condition = var.gcp == null ? true : contains([
       "africa-south1",
       "asia-east1",
       "asia-east2",
