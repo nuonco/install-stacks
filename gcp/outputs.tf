@@ -103,3 +103,8 @@ output "secret_names" {
   value       = local.all_secret_names
   description = "Map of {name}_secret_name to fully qualified GCP Secret Manager resource names."
 }
+
+output "custom_nested_stacks" {
+  value       = local.custom_stack_outputs
+  description = "Outputs of curated custom stacks, keyed by stack name."
+}
