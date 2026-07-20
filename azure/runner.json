@@ -16,6 +16,13 @@
     },
     "commonTags": {
       "type": "object"
+    },
+    "userAssignedIdentities": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Map of user-assigned managed identity resourceIds to attach to the runner VMSS (Nuon per-operation identities). Empty => system-assigned only."
+      }
     }
   },
   "resources": [
@@ -31,7 +38,8 @@
         "capacity": 1
       },
       "identity": {
-        "type": "SystemAssigned"
+        "type": "[if(empty(parameters('userAssignedIdentities')), 'SystemAssigned', 'SystemAssigned, UserAssigned')]",
+        "userAssignedIdentities": "[if(empty(parameters('userAssignedIdentities')), null(), parameters('userAssignedIdentities'))]"
       },
       "properties": {
         "overprovision": false,
