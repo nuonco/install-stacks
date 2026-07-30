@@ -116,6 +116,24 @@ phone_home_url         = "https://api.nuon.co/api/v1/installs/inl4xabsyaqxp0cb2o
 
 Save this file as `install.tfvars` (or any `*.tfvars` name) inside the `aws/` directory.
 
+To export runner audit logs to an OTLP/HTTP backend of your choice, prepare an exporter configuration with this shape:
+
+```yaml
+exporters:
+  otlphttp:
+    endpoint: https://otlp.example.com
+    headers:
+      Authorization: Bearer <token>
+```
+
+Base64-encode the YAML using secure tooling, then provide it through an environment variable rather than storing it in a tfvars file:
+
+```bash
+export TF_VAR_runner_audit_export_config="<base64-encoded YAML>"
+```
+
+The value is stored in AWS Secrets Manager in the target account, and the install stack grants read access only to the runner instance role. Leave the environment variable unset or empty to disable audit export.
+
 The vendor will also provide a **runner API token**. Export it as an environment variable so Terraform can pick it up without storing it on disk:
 
 ```bash
