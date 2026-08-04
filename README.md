@@ -17,6 +17,7 @@ Terraform modules that provision the infrastructure required to run [Nuon](https
 - **Firewall Rules** – Internal traffic between subnets is allowed; all egress is permitted.
 - **Service Account & IAM** – A runner service account with roles for GKE, Compute networking, Artifact Registry, Cloud DNS, and security administration.
 - **Runner Instance** – An `e2-medium` Compute Engine VM (Ubuntu 22.04) that bootstraps itself using the Nuon runner init script.
+- **Secrets** – Secret Manager entries for auto-generated, customer-provided, and telemetry export configuration.
 - **Phone Home** – A `local-exec` provisioner that reports provisioning results back to Nuon.
 
 ### Prerequisites
@@ -61,6 +62,35 @@ terraform init
 terraform plan
 terraform apply
 ```
+
+Terraform creates the `<install-id>-telemetry-export-config` secret and grants read access only to the runner service account. To export runner audit logs and other telemetry to your own backend, save the following configuration as `telemetry-export-config.yaml`:
+
+See the [telemetry export reference](https://docs.nuon.co/guides/export-runner-audit-logs) for available settings.
+
+```yaml
+version: v1
+
+telemetry:
+  logs:
+    audit:
+      enabled: true
+
+exporters:
+  otlphttp:
+    endpoint: https://otlp.example.com
+    headers:
+      Authorization: Bearer <token>
+```
+
+After `terraform apply` completes, upload the file as a secret version:
+
+```bash
+gcloud secrets versions add "<install-id>-telemetry-export-config" \
+  --data-file="telemetry-export-config.yaml" \
+  --project="<gcp-project-id>"
+```
+
+The configuration remains outside Terraform state. If the secret has no current value, the runner telemetry collector remains disabled.
 
 You will be prompted for the two customer-supplied values:
 
@@ -116,24 +146,6 @@ phone_home_url         = "https://api.nuon.co/api/v1/installs/inl4xabsyaqxp0cb2o
 
 Save this file as `install.tfvars` (or any `*.tfvars` name) inside the `aws/` directory.
 
-To export runner audit logs to an OTLP/HTTP backend of your choice, prepare an exporter configuration with this shape:
-
-```yaml
-exporters:
-  otlphttp:
-    endpoint: https://otlp.example.com
-    headers:
-      Authorization: Bearer <token>
-```
-
-Base64-encode the YAML using secure tooling, then provide it through an environment variable rather than storing it in a tfvars file:
-
-```bash
-export TF_VAR_telemetry_export_config="<base64-encoded YAML>"
-```
-
-The value is stored in AWS Secrets Manager in the target account, and the install stack grants read access only to the runner instance role. Leave the environment variable unset or empty to disable audit export.
-
 The vendor will also provide a **runner API token**. Export it as an environment variable so Terraform can pick it up without storing it on disk:
 
 ```bash
@@ -153,6 +165,36 @@ terraform init
 terraform plan
 terraform apply
 ```
+
+Terraform creates the `nuon/<install-id>/telemetry-export-config` secret and grants read access only to the runner instance role. To export runner audit logs and other telemetry to your own backend, save the following configuration as `telemetry-export-config.yaml`:
+
+See the [telemetry export reference](https://docs.nuon.co/guides/export-runner-audit-logs) for available settings.
+
+```yaml
+version: v1
+
+telemetry:
+  logs:
+    audit:
+      enabled: true
+
+exporters:
+  otlphttp:
+    endpoint: https://otlp.example.com
+    headers:
+      Authorization: Bearer <token>
+```
+
+After `terraform apply` completes, upload the file as a secret version:
+
+```bash
+aws secretsmanager put-secret-value \
+  --secret-id "nuon/<install-id>/telemetry-export-config" \
+  --secret-string file://telemetry-export-config.yaml \
+  --region "<aws-region>"
+```
+
+The configuration remains outside Terraform state. If the secret has no current value, the runner telemetry collector remains disabled.
 
 You will be prompted for the customer-supplied value:
 
