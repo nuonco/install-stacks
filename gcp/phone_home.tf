@@ -56,8 +56,8 @@ resource "null_resource" "phone_home" {
     google_compute_subnetwork.runner,
     google_secret_manager_secret_version.auto_generate,
     google_secret_manager_secret_version.customer,
-    google_secret_manager_secret.runner_audit_export,
-    google_secret_manager_secret_iam_member.runner_audit_export_accessor,
+    google_secret_manager_secret.telemetry_export_config,
+    google_secret_manager_secret_iam_member.telemetry_export_config_accessor,
   ]
 
   triggers = {
