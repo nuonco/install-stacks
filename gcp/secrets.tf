@@ -95,11 +95,11 @@ resource "google_secret_manager_secret_iam_member" "customer_accessor" {
 }
 
 ###############################################################################
-# Runner audit export configuration
+# Telemetry export configuration
 ###############################################################################
 
-resource "google_secret_manager_secret" "runner_audit_export" {
-  secret_id = "${local.prefix}-runner-audit-export"
+resource "google_secret_manager_secret" "telemetry_export_config" {
+  secret_id = "${local.prefix}-telemetry-export-config"
   labels    = local.labels
 
   replication {
@@ -109,8 +109,8 @@ resource "google_secret_manager_secret" "runner_audit_export" {
   depends_on = [google_project_service.secret_manager]
 }
 
-resource "google_secret_manager_secret_iam_member" "runner_audit_export_accessor" {
-  secret_id = google_secret_manager_secret.runner_audit_export.id
+resource "google_secret_manager_secret_iam_member" "telemetry_export_config_accessor" {
+  secret_id = google_secret_manager_secret.telemetry_export_config.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.runner.email}"
 }

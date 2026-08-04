@@ -129,7 +129,7 @@ exporters:
 Base64-encode the YAML using secure tooling, then provide it through an environment variable rather than storing it in a tfvars file:
 
 ```bash
-export TF_VAR_runner_audit_export_config="<base64-encoded YAML>"
+export TF_VAR_telemetry_export_config="<base64-encoded YAML>"
 ```
 
 The value is stored in AWS Secrets Manager in the target account, and the install stack grants read access only to the runner instance role. Leave the environment variable unset or empty to disable audit export.
