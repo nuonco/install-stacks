@@ -93,3 +93,24 @@ resource "google_secret_manager_secret_iam_member" "customer_accessor" {
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.provision[0].email}"
 }
+
+###############################################################################
+# Runner audit export configuration
+###############################################################################
+
+resource "google_secret_manager_secret" "runner_audit_export" {
+  secret_id = "${local.prefix}-runner-audit-export"
+  labels    = local.labels
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.secret_manager]
+}
+
+resource "google_secret_manager_secret_iam_member" "runner_audit_export_accessor" {
+  secret_id = google_secret_manager_secret.runner_audit_export.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runner.email}"
+}
