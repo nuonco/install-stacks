@@ -4,7 +4,7 @@ This is a Terraform module for provisioning Nuon install stacks in GCP. It is me
 
 For more information about Nuon stack templates, see the [Stack templates](../docs/stack-templates.md) doc.
 
-For more information about the Nuon runner, see the [Nuon runner requirements](../docs/runner-requirements.md) doc.
+For more information about the Nuon runner, see the [The Nuon runner](../docs/the-nuon-runner.md) doc.
 
 ## Architecture
 
@@ -25,7 +25,7 @@ For more information about the Nuon runner, see the [Nuon runner requirements](.
   - **Break-glass service accounts** – optional, created from a map keyed by role name and gated by `enabled = true`.
   - **Custom service accounts** – optional app-operation roles, same shape and gating as break-glass roles.
   - **GKE node pool service account** – a least-privilege SA for GKE nodes (logging, monitoring, Artifact Registry read), created by default; pass `gke_node_pool_sa_email` to use an existing one instead, or set `has_gke_node_pool = false` to skip it.
-- **Secrets** (`secrets.tf`) – Secret Manager entries named `<install-id>-<name>` for auto-generated secrets (63-char random values) and customer-provided secrets, plus an **empty** `<install-id>-telemetry-export-config` secret whose value the customer uploads out-of-band (see [Telemetry export](../docs/runner-requirements.md#telemetry-export-optional)).
+- **Secrets** (`secrets.tf`) – Secret Manager entries named `<install-id>-<name>` for auto-generated secrets (63-char random values) and customer-provided secrets, plus an **empty** `<install-id>-telemetry-export-config` secret whose value the customer uploads out-of-band (see [Telemetry export](../docs/the-nuon-runner.md#telemetry-export-optional)).
 - **Phone home** (`phone_home.tf`) – A `local-exec` provisioner that POSTs provisioning results (outputs, install inputs) back to Nuon on every apply.
 
 > [!NOTE]
@@ -43,7 +43,7 @@ For more information about the Nuon runner, see the [Nuon runner requirements](.
 - Unlike AWS, GCP subnets are **regional**, so there is one subnet per tier rather than one per availability zone. Zonal redundancy comes from GCP's regional fabric, not from subnet layout.
 - A single **Cloud NAT** (auto-allocated IPs) attached to the Cloud Router provides outbound internet access for **all** subnets — there is no public/private routing split; "public" vs "private" is a naming convention consumed by downstream components.
 - All subnets have **Private Google Access** enabled, so instances without external IPs can still reach Google APIs (Secret Manager, Compute, Artifact Registry) directly.
-- The runner requires no inbound connectivity; for the outbound destinations it must reach, see [Runner requirements → Network requirements](../docs/runner-requirements.md#network-requirements).
+- The runner requires no inbound connectivity; for the outbound destinations it must reach, see [The Nuon runner → Network requirements](../docs/the-nuon-runner.md#network-requirements).
 
 ## Authentication
 

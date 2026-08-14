@@ -21,7 +21,7 @@ terraform apply
 The Nuon runner does not depend on these specific Terraform modules. As long as certain requirements are fulfilled you can create a custom module, or even manage the runner directly. See the stack and runner requirements docs for more information.
 
 - [Stack templates](docs/stack-templates.md) — the contract between the control plane and a stack template (provided inputs, required roles and secrets, the phone-home payload). Start here to build your own stack template for any cloud platform.
-- [Runner requirements](docs/runner-requirements.md) — what the Nuon runner needs to start and to pick up and execute jobs (configuration, authentication, network access, host setup). Start here to run the runner yourself.
+- [The Nuon runner](docs/the-nuon-runner.md) — what the Nuon runner needs to start and to pick up and execute jobs (configuration, authentication, network access, host setup). Start here to run the runner yourself.
 
 ## GCP
 
@@ -77,7 +77,7 @@ terraform plan
 terraform apply
 ```
 
-To export runner audit logs and other telemetry to your own backend, see [Telemetry export](docs/runner-requirements.md#telemetry-export-optional).
+To export runner audit logs and other telemetry to your own backend, see [Telemetry export](docs/the-nuon-runner.md#telemetry-export-optional).
 
 If the GCP project and region were selected when the install was created, they are included in the generated tfvars; otherwise Terraform prompts for them at apply time:
 

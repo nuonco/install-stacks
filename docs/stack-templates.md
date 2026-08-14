@@ -28,7 +28,7 @@ The values for all required inputs will be provided by the control plane.
 | Input                                                   | Purpose                                                                                                         |
 | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `nuon_install_id`, `nuon_org_id`, `nuon_app_id`         | Identity of the install; `nuon_install_id` is the naming prefix                                                 |
-| `runner_id`, `runner_api_url`                           | Passed through to the runner host (see the bootstrap contract in [Runner requirements](runner-requirements.md)) |
+| `runner_id`, `runner_api_url`                           | Passed through to the runner host (see the bootstrap contract in [The Nuon runner](the-nuon-runner.md)) |
 | `phone_home_url`                                        | Where to POST results                                                                                           |
 | `nuon_support_iam_role_arns`                            | Principals that must be able to assume the operation roles                                                      |
 | `provision_*` / `maintenance_*` / `deprovision_*`       | Permissions for the three operation roles                                                                       |
@@ -58,7 +58,7 @@ The exact layout is up to the template, but all templates must fulfill the follo
 
 ### Runner host
 
-A host in the runner subnet that boots the runner. The full host contract (tags, instance profile, init script, outbound destinations) is in [Runner requirements](runner-requirements.md).
+A host in the runner subnet that boots the runner. The full host contract (tags, instance profile, init script, outbound destinations) is in [The Nuon runner](the-nuon-runner.md).
 
 ### Operation roles
 
