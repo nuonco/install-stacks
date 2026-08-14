@@ -18,7 +18,7 @@ All configuration is read from environment variables:
 | Variable             | Required | Purpose                                                                                                             |
 | -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
 | `RUNNER_ID`          | yes      | The runner's identity, issued when the install is created. Appears in every API path (`/v1/runners/<runner_id>/…`). |
-| `RUNNER_API_URL`     | yes      | Base URL of the Nuon runner API (defaults to `https://api.nuon.co`).                                                |
+| `RUNNER_API_URL`     | yes      | Base URL of the Nuon runner API (e.g. `https://api.nuon.co`).                                                       |
 | `RUNNER_API_TOKEN`   | no       | Bearer token for the runner API. If unset, the runner authenticates itself using its cloud identity (see below).    |
 | `RUNNER_PLATFORM`    | no       | `aws`, `azure`, or `gcp`; selects the cloud-auth path when no token is set.                                         |
 | `RUNNER_AUTH_METHOD` | no       | AWS only: `iid` (instance identity document, default) or `sts` (presigned STS requests).                            |
@@ -128,7 +128,7 @@ On the runner host, the boot process can vary a little per platform, but at a hi
 
 ### Runner process
 
-Regardless of how the host is provisioned, when the runner process starts will go through the following steps.
+Regardless of how the host is provisioned, when the runner process starts it goes through the following steps.
 
 1. Load config from environment (fail fast if `RUNNER_ID`/`RUNNER_API_URL` missing).
 2. Acquire an API token (env var, or cloud-identity auth).

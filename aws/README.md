@@ -50,7 +50,7 @@ The authentication process is as follows.
 
 1. User data sets `RUNNER_AUTH_METHOD=iid` on the instance.
 1. At boot, the runner reads its **signed instance identity document** from the instance metadata service (IMDS).
-1. The runner POSTs the IID, along with its `runner_id` (from the `nuon_runner_id` instance tag), to `POST /v1/runner-auth/aws-iid`.
+1. The runner POSTs the IID, along with its `runner_id` (from the `nuon_runner_id` instance tag), to `/v1/runner-auth/aws-iid`.
 1. The control plane verifies the document's signature against AWS's per-region certificates and checks that its account ID matches the account the stack phoned home from.
 1. The control plane mints a bearer token.
 1. The token is stored at `/opt/nuon/runner/token` (mode 0600) and sent as `Authorization: Bearer` on every subsequent API call.

@@ -11,7 +11,7 @@ A stack template needs to perform the following tasks, in this order.
 
 If deploying the runner into an existing network, most or all of the network resources may already exist.
 You may already have a VPC or even a Kubernetes cluster you want to deploy the runner into.
-In that case, the stack can simply gather information about those resources -- using, for example Terraform data sources -- and export it so it's available in the install state for the app to reference.
+In that case, the stack can simply gather information about those resources — using, for example, Terraform data sources — and export it so it's available in the install state for the app to reference.
 See [Required outputs](#required-outputs) for details.
 
 ## Lifecycle
@@ -53,8 +53,8 @@ The network topology the app will be deployed into. The stacks in this repo crea
 The exact layout is up to the template, but all templates must fulfill the following requirements.
 
 - The runner's subnet must have **outbound internet access** in order to reach the Nuon control plane.
-- Subnets should carry the discovery tags described in [Naming and tagging](#naming-and-tagging) if you are using one our open-source sandboxes.
-- Report network info in the phone-home request, (see [Required output keys](#required-outputs) for details.)
+- Subnets should carry the discovery tags described in [Naming and tagging](#naming-and-tagging) if you are using one of our open-source sandboxes.
+- Report network info in the phone-home request (see [Required output keys](#required-outputs) for details).
 
 ### Runner host
 
@@ -67,8 +67,8 @@ The runner assumes one of the provisioned roles for every job it runs.
 - **provision** — used by default for provision workflows and secret syncs
 - **deprovision** — used by default for deprovision workflows
 - **maintenance** — used by default for all other jobs
-- **customer** - used as configured in the app config, overriding the default roles
-- **break-glass** — used for special break-glass operations when elevated permission are needed. Disabled by default
+- **customer** — used as configured in the app config, overriding the default roles
+- **break-glass** — used for special break-glass operations when elevated permissions are needed. Disabled by default
 
 Rules the template must follow:
 
@@ -91,7 +91,7 @@ If a job's configuration names a role that is missing from the stack outputs, th
 
 - Prefix all resources with the install ID.
 - Tag resources with `install.nuon.co/id` and `nuon_install_id`.
-- If the install will host a Kubernetes clusters, tag the subnets with `kubernetes.io/cluster/<cluster_name>` (where `cluster_name` is the install input of that name, defaulting to the install ID) and with `network.nuon.co/domain` = `public` / `internal` / `runner` so downstream components can discover them.
+- If the install will host a Kubernetes cluster, tag the subnets with `kubernetes.io/cluster/<cluster_name>` (where `cluster_name` is the install input of that name, defaulting to the install ID) and with `network.nuon.co/domain` = `public` / `internal` / `runner` so downstream components can discover them.
 
 ## Phone home
 

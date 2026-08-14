@@ -30,7 +30,7 @@ The Nuon runner does not depend on these specific Terraform modules. As long as 
 - **VPC & Subnets** – A dedicated VPC with public, private, and runner subnets, a Cloud Router, and a Cloud NAT for outbound internet access.
 - **Firewall Rules** – Internal traffic between subnets is allowed; all egress is permitted.
 - **Service Account & IAM** – A runner service account with roles for GKE, Compute networking, Artifact Registry, Cloud DNS, and security administration.
-- **Runner Instance** – An `e2-medium` Compute Engine VM (Ubuntu 22.04) that bootstraps itself using the Nuon runner init script.
+- **Runner Instance** – A single-instance managed instance group running an `e2-standard-4` (configurable) Compute Engine VM (Ubuntu 24.04) that bootstraps itself using the Nuon runner init script.
 - **Secrets** – Secret Manager entries for auto-generated, customer-provided, and telemetry export configuration.
 - **Phone Home** – A `local-exec` provisioner that reports provisioning results back to Nuon.
 
@@ -52,10 +52,10 @@ nuon_app_id            = "appk2o58477kw8jbounuxpkaqr"
 runner_api_url         = "https://api.nuon.co/runner"
 runner_id              = "run4dbg9i5fzwdlq7zk1llbout"
 runner_init_script_url = "https://raw.githubusercontent.com/nuonco/runner/refs/heads/main/scripts/gcp/init.sh"
-phone_home_url         = "https:/api.nuon.co/api/v1/installs/inl4xabsyaqxp0cb2oy5l8urvf/phone-home/aws3no0qz8sxsbqa13dgs2pfb3"
+phone_home_url         = "https://api.nuon.co/api/v1/installs/inl4xabsyaqxp0cb2oy5l8urvf/phone-home/aws3no0qz8sxsbqa13dgs2pfb3"
 ```
 
-Save this file as `install.tfvars` (or any `*.tfvars` name) inside the `gcp/` directory.
+Save this file as `install.auto.tfvars` (or any `*.auto.tfvars` name) inside the `gcp/` directory so Terraform loads it automatically. If you use a different name (e.g. `install.tfvars`), pass it explicitly with `-var-file=install.tfvars` on every plan and apply.
 
 The vendor will also provide a **runner API token**. Export it as an environment variable so Terraform can pick it up without storing it on disk:
 
