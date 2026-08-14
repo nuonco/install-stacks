@@ -26,11 +26,13 @@ ctl-api has no AWS credentials on GCP. Instead:
 
 `accounts.google.com` is a built-in AWS web-identity provider, so no
 `aws_iam_openid_connect_provider` resource is required. The trust policy is
-scoped to:
-
-- `accounts.google.com:aud == sts.amazonaws.com`
-- `accounts.google.com:sub == var.ctl_api_sa_unique_id` (the numeric
-  `unique_id` of the ctl-api GSA)
+scoped to `accounts.google.com:sub == var.ctl_api_sa_unique_id` (the numeric
+`unique_id` of the ctl-api GSA) **and nothing else** — in particular, not to
+`aud`. Google service-account identity tokens always carry an `azp` claim set
+to the SA's numeric id, and AWS substitutes `azp` for the
+`accounts.google.com:aud` condition key whenever it is present, so an `aud`
+condition could never match the requested audience. `sub` uniquely pins the
+service account, which is the binding that matters.
 
 This is the GCP analog of the EKS IRSA pattern used in
 `byoc-nuon/src/components/s3_buckets` (`clickhouse_role`), which federates the

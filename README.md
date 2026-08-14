@@ -6,6 +6,11 @@ Terraform modules for provisioning the infrastructure required to run the [Nuon 
 - [Google Cloud Platform](/gcp)
 - Microsoft Azure (Coming soon)
 
+Supporting modules for operators running the control plane on GCP:
+
+- [gcp-bucket](/gcp-bucket) — the S3 bucket CloudFormation needs when deploying AWS installs from a GCP-hosted control plane
+- [ph-secrets](/ph-secrets) — AWS-side KMS key and role for phone-home authentication secrets
+
 ## How to use these modules
 
 When an install is created, the Nuon control plane generates an `install.auto.tfvars` file with the required input values. Save it into the directory for your cloud provider (e.g. `aws/` or `gcp/`), then init and apply the Terraform:
@@ -88,16 +93,21 @@ If the GCP project and region were selected when the install was created, they a
 
 ### Outputs
 
-| Output                         | Description                  |
-| ------------------------------ | ---------------------------- |
-| `project_id`                   | GCP project ID               |
-| `region`                       | Provisioned region           |
-| `network_name`                 | VPC network name             |
-| `network_id`                   | VPC network ID               |
-| `public_subnet_name`           | Public subnet name           |
-| `private_subnet_name`          | Private subnet name          |
-| `runner_subnet_name`           | Runner subnet name           |
-| `runner_service_account_email` | Runner service account email |
+| Output                                                  | Description                                        |
+| ------------------------------------------------------- | -------------------------------------------------- |
+| `project_id`                                            | GCP project ID                                     |
+| `region`                                                | Provisioned region                                 |
+| `network_name`, `network_id`                            | VPC network name and ID                            |
+| `public_subnet_name`, `private_subnet_name`, `runner_subnet_name` | Subnet names                             |
+| `runner_service_account_email`                          | Runner service account email                       |
+| `{provision,maintenance,deprovision}_sa_email`          | Operation service account emails (empty if not created) |
+| `break_glass_sa_emails`, `custom_sa_emails`             | Maps of role name → service account email          |
+| `gke_node_pool_sa_email`                                | GKE node pool service account email                |
+| `secret_names`                                          | Map of secret name → Secret Manager secret ID      |
+| `install_inputs`                                        | Echo of the customer-supplied install inputs       |
+| `custom_nested_stacks`                                  | Outputs of any curated custom stack modules        |
+
+Each service account output also has a `*_unique_id` counterpart. See [`gcp/outputs.tf`](gcp/outputs.tf) for the full list.
 
 ## License
 

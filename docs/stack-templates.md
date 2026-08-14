@@ -35,6 +35,8 @@ The values for all required inputs will be provided by the control plane.
 | `break_glass_roles` / `custom_roles`                    | Optional named roles, each with an `enabled` flag                                                               |
 | `secrets` / `auto_generate_secrets`                     | Secrets to store / generate                                                                                     |
 | `install_inputs`                                        | Customer-supplied input values, echoed back in phone-home                                                       |
+| `custom_stacks`                                         | Curated child modules selected by the app config; their outputs phone home under `custom_nested_stacks`         |
+| `runner_init_script_url`, `runner_api_token` (GCP)      | GCP only: the runner bootstrap script URL and the static runner API token (exported as `TF_VAR_runner_api_token`) |
 | Deployment target (`aws_region`, GCP project/region, …) | Selected when the install is created                                                                            |
 
 > [!NOTE]
@@ -73,7 +75,9 @@ The runner assumes one of the provisioned roles for every job it runs.
 Rules the template must follow:
 
 - **Trust policy**: each role must be assumable by (a) the `nuon_support_iam_role_arns` principals (fall back to the account root if the list is empty) and (b) the runner's own identity. On AWS this means an IAM trust policy naming both; on GCP the equivalent is `roles/iam.serviceAccountTokenCreator` grants on per-operation service accounts.
-- **Permission shapes**: `inline_policy_document` (full policy JSON, preserves resource/condition scoping) takes precedence over `permissions` (a list of action strings, granted on all resources), and `managed_policy_arns` attach in addition.
+- **Permission shapes** — these differ per platform:
+  - AWS: `inline_policy_document` (full policy JSON, preserves resource/condition scoping) takes precedence over `permissions` (a list of action strings, granted on all resources), and `managed_policy_arns` attach in addition.
+  - GCP: `*_policies` (a map of policy name → list of permission strings, each becoming a project-level custom role) and `*_predefined_role` (e.g. `roles/editor`), both granted to the operation service account.
 - **Enable semantics**: an operation role is created only if it has any permissions; a disabled role must still appear in the phone-home payload with an **empty string** ARN — omit the key and role lookup breaks.
 - The runner's identity must be allowed to assume every enabled role (on AWS: `sts:AssumeRole` on each role ARN).
 
@@ -83,7 +87,7 @@ If a job's configuration names a role that is missing from the stack outputs, th
 
 - Store each entry in the platform's secret manager, named `<install-id>-<secret-name>`.
 - For `auto_generate_secrets`, generate the value in the stack (the stacks in this repo use 63-char random strings, no special characters) and never rotate it on re-apply.
-- Create an **empty** `nuon/<install-id>/telemetry-export-config` secret; the customer uploads its value out-of-band.
+- Create an **empty** telemetry export config secret; the customer uploads its value out-of-band. It is named `nuon/<install-id>/telemetry-export-config` on AWS and `<install-id>-telemetry-export-config` on GCP (GCP secret IDs cannot contain `/`).
 - Grant the runner's identity read access.
 - Report each secret's identifier in phone-home as `<secret_name>_arn` (AWS), `<secret_name>_secret_name` (GCP), or `<secret_name>_secret_id` (Azure). A `required` secret missing from the outputs makes secret-sync jobs fail.
 
@@ -91,7 +95,7 @@ If a job's configuration names a role that is missing from the stack outputs, th
 
 - Prefix all resources with the install ID.
 - Tag resources with `install.nuon.co/id` and `nuon_install_id`.
-- If the install will host a Kubernetes cluster, tag the subnets with `kubernetes.io/cluster/<cluster_name>` (where `cluster_name` is the install input of that name, defaulting to the install ID) and with `network.nuon.co/domain` = `public` / `internal` / `runner` so downstream components can discover them.
+- Tag the subnets with `network.nuon.co/domain` = `public` / `internal` / `runner` so downstream components can discover them. The `kubernetes.io/cluster/<cluster_name>` tag is **not** the template's job — the Nuon sandboxes apply it to the reported subnets themselves (via `aws_ec2_tag`) when they create the cluster.
 
 ## Phone home
 
@@ -123,6 +127,7 @@ AWS:
 | `break_glass_role_arns`, `custom_role_arns`                                      | Maps of role name → ARN                                                                                                |
 | `<secret_name>_arn`                                                              | One per secret, flattened at the top level                                                                             |
 | `install_inputs`                                                                 | Echo of the customer inputs; back-fills install state                                                                  |
+| `custom_nested_stacks`                                                           | Map of custom stack name → `{ outputs = … }` for the curated child modules selected via `custom_stacks`                |
 
 The GCP equivalents are `project_id`, `region`, `network_name`/`network_id`, `*_subnet_name`, `runner_service_account_email`, `{provision,maintenance,deprovision}_sa_email`, `break_glass_sa_emails`, `custom_sa_emails`, plus the same `install_inputs`.
 

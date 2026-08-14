@@ -1,4 +1,4 @@
-# byoc-ph-secrets
+# ph-secrets
 
 Terraform module that creates the **AWS-side infrastructure for Nuon phone-home authentication**, for operators running
 `ctl-api` on GCP.
@@ -29,7 +29,7 @@ provider "aws" {
 }
 
 module "phone_home_secrets" {
-  source = "github.com/nuonco/<repo>//byoc-ph-secrets"
+  source = "github.com/nuonco/install-stacks//ph-secrets"
 
   ctl_api_sa_unique_id = "112925175524898131819"
 }
@@ -38,8 +38,6 @@ output "ctl_api_config" {
   value = module.phone_home_secrets.ctl_api_config
 }
 ```
-
-See [`examples/complete`](./examples/complete).
 
 ## Getting `ctl_api_sa_unique_id`
 

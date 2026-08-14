@@ -32,6 +32,8 @@ The runner needs a bearer token for the runner API. There are two ways to get on
 1. **Static token** – set `RUNNER_API_TOKEN` directly (this is how the GCP stack and local/dev setups work). You are responsible for delivering the token to the host securely.
 2. **AWS instance identity (used by the AWS stack)** – the runner reads its signed instance identity document (IID) from IMDS and POSTs it (with `RUNNER_ID`) to `/v1/runner-auth/aws-iid`; the control plane verifies it and mints a token. No credential ever needs to be provisioned.
 
+The control plane also supports identity-based auth for the other clouds — `/v1/runner-auth/gcp` (Google-signed identity token) and `/v1/runner-auth/azure` (managed identity), selected via `RUNNER_PLATFORM` — but the GCP stack in this repo currently ships with the static-token flow.
+
 ## Network requirements
 
 No inbound connectivity is required. The runner's listeners (local OCI registry cache, health endpoints) bind to localhost only.
