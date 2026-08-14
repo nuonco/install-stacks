@@ -1,13 +1,27 @@
 # Nuon Install Stacks
 
-Terraform modules that provision the infrastructure required to run [Nuon](https://nuon.co) in your cloud account. Each subdirectory targets a specific cloud provider and sets up networking, IAM, and a runner instance that phones home to the Nuon control plane.
+Terraform modules for provisioning the infrastructure required to run the [Nuon runner](https://docs.nuon.co/architecture/platform#install-runner) in a customer's cloud account. Each subdirectory targets a different cloud provider.
 
-## Supported Clouds
+- [Amazon Web Services](/aws)
+- [Google Cloud Platform](/gcp)
+- Microsoft Azure (Coming soon)
 
-| Provider | Directory | Status |
-|----------|-----------|--------|
-| GCP      | [`gcp/`](gcp/) | ✅ Available |
-| AWS      | [`aws/`](aws/) | ✅ Available |
+## How to use these modules
+
+When an install is created, the Nuon control plane generates an `install.auto.tfvars` file with the required input values. Save it into the directory for your cloud provider (e.g. `aws/` or `gcp/`), then init and apply the Terraform:
+
+```bash
+cd aws/  # or gcp/
+terraform init
+terraform apply
+```
+
+## How to customize or replace these modules
+
+The Nuon runner does not depend on these specific Terraform modules. As long as certain requirements are fulfilled you can create a custom module, or even manage the runner directly. See the stack and runner requirements docs for more information.
+
+- [Stack templates](docs/stack-templates.md) — the contract between the control plane and a stack template (provided inputs, required roles and secrets, the phone-home payload). Start here to build your own stack template for any cloud platform.
+- [Runner requirements](docs/runner-requirements.md) — what the Nuon runner needs to start and to pick up and execute jobs (configuration, authentication, network access, host setup). Start here to run the runner yourself.
 
 ## GCP
 
@@ -63,158 +77,27 @@ terraform plan
 terraform apply
 ```
 
-Terraform creates the `<install-id>-telemetry-export-config` secret and grants read access only to the runner service account. To export runner audit logs and other telemetry to your own backend, save the following configuration as `telemetry-export-config.yaml`:
+To export runner audit logs and other telemetry to your own backend, see [Telemetry export](docs/runner-requirements.md#telemetry-export-optional).
 
-See the [telemetry export reference](https://docs.nuon.co/guides/export-runner-audit-logs) for available settings.
+If the GCP project and region were selected when the install was created, they are included in the generated tfvars; otherwise Terraform prompts for them at apply time:
 
-```yaml
-version: v1
-
-telemetry:
-  logs:
-    audit:
-      enabled: true
-
-exporters:
-  otlphttp:
-    endpoint: https://otlp.example.com
-    headers:
-      Authorization: Bearer <token>
-```
-
-After `terraform apply` completes, upload the file as a secret version:
-
-```bash
-gcloud secrets versions add "<install-id>-telemetry-export-config" \
-  --data-file="telemetry-export-config.yaml" \
-  --project="<gcp-project-id>"
-```
-
-The configuration remains outside Terraform state. If the secret has no current value, the runner telemetry collector remains disabled.
-
-You will be prompted for the two customer-supplied values:
-
-| Variable | Description |
-|----------|-------------|
+| Variable         | Description                       |
+| ---------------- | --------------------------------- |
 | `gcp_project_id` | The GCP project to provision into |
-| `gcp_region` | The GCP region for all resources |
+| `gcp_region`     | The GCP region for all resources  |
 
 ### Outputs
 
-| Output | Description |
-|--------|-------------|
-| `project_id` | GCP project ID |
-| `region` | Provisioned region |
-| `network_name` | VPC network name |
-| `network_id` | VPC network ID |
-| `public_subnet_name` | Public subnet name |
-| `private_subnet_name` | Private subnet name |
-| `runner_subnet_name` | Runner subnet name |
+| Output                         | Description                  |
+| ------------------------------ | ---------------------------- |
+| `project_id`                   | GCP project ID               |
+| `region`                       | Provisioned region           |
+| `network_name`                 | VPC network name             |
+| `network_id`                   | VPC network ID               |
+| `public_subnet_name`           | Public subnet name           |
+| `private_subnet_name`          | Private subnet name          |
+| `runner_subnet_name`           | Runner subnet name           |
 | `runner_service_account_email` | Runner service account email |
-
-## AWS
-
-### What gets created
-
-- **VPC & Subnets** – A dedicated VPC (`10.128.0.0/16`) with public, private, and runner subnets, an Internet Gateway, and a NAT Gateway for outbound internet access.
-- **Security Groups** – A runner security group permitting internal traffic and egress to the internet.
-- **IAM** – A runner instance role and instance profile, plus provision/maintenance/deprovision IAM roles trusted by the Nuon control plane and the runner. Optional break-glass and custom app-operation roles.
-- **Runner ASG** – A `t3.medium` Auto Scaling Group (min/max/desired = 1) running Ubuntu 24.04 LTS that bootstraps itself using the Nuon runner init script. Logs to a dedicated CloudWatch log group.
-- **Secrets** – AWS Secrets Manager entries for auto-generated and customer-provided secrets.
-- **Phone Home** – A `local-exec` provisioner that reports provisioning results back to Nuon.
-
-### Prerequisites
-
-- Terraform ≥ 1.11.0
-- AWS provider ≥ 5.0
-- An AWS account with permissions to create VPC, EC2, IAM, Secrets Manager, and CloudWatch resources
-- Credentials configured for the `aws` provider (e.g. `aws sso login`, `AWS_PROFILE`, or environment variables)
-
-### Usage
-
-Your Nuon vendor will provide a `.tfvars` file containing the configuration for your install. It will look like this:
-
-```hcl
-nuon_install_id        = "inl4xabsyaqxp0cb2oy5l8urvf"
-nuon_org_id            = "orgnwi4odoca7y0z9wddc1767e"
-nuon_app_id            = "appk2o58477kw8jbounuxpkaqr"
-runner_api_url         = "https://api.nuon.co/runner"
-runner_id              = "run4dbg9i5fzwdlq7zk1llbout"
-runner_init_script_url = "https://raw.githubusercontent.com/nuonco/runner/refs/heads/main/scripts/aws/init.sh"
-phone_home_url         = "https://api.nuon.co/api/v1/installs/inl4xabsyaqxp0cb2oy5l8urvf/phone-home/aws3no0qz8sxsbqa13dgs2pfb3"
-```
-
-Save this file as `install.tfvars` (or any `*.tfvars` name) inside the `aws/` directory.
-
-The vendor will also provide a **runner API token**. Export it as an environment variable so Terraform can pick it up without storing it on disk:
-
-```bash
-export TF_VAR_runner_api_token="<token provided by your vendor>"
-```
-
-Then run:
-
-```bash
-cd aws/
-
-# Optionally configure a remote backend
-cp backend.tf.example backend.tf
-# Edit backend.tf with your S3 bucket details
-
-terraform init
-terraform plan
-terraform apply
-```
-
-Terraform creates the `nuon/<install-id>/telemetry-export-config` secret and grants read access only to the runner instance role. To export runner audit logs and other telemetry to your own backend, save the following configuration as `telemetry-export-config.yaml`:
-
-See the [telemetry export reference](https://docs.nuon.co/guides/export-runner-audit-logs) for available settings.
-
-```yaml
-version: v1
-
-telemetry:
-  logs:
-    audit:
-      enabled: true
-
-exporters:
-  otlphttp:
-    endpoint: https://otlp.example.com
-    headers:
-      Authorization: Bearer <token>
-```
-
-After `terraform apply` completes, upload the file as a secret version:
-
-```bash
-aws secretsmanager put-secret-value \
-  --secret-id "nuon/<install-id>/telemetry-export-config" \
-  --secret-string file://telemetry-export-config.yaml \
-  --region "<aws-region>"
-```
-
-The configuration remains outside Terraform state. If the secret has no current value, the runner telemetry collector remains disabled.
-
-You will be prompted for the customer-supplied value:
-
-| Variable | Description |
-|----------|-------------|
-| `aws_region` | The AWS region for all resources |
-
-### Outputs
-
-| Output | Description |
-|--------|-------------|
-| `aws_account_id` | AWS account ID |
-| `region` | Provisioned region |
-| `vpc_id` | VPC ID |
-| `public_subnet_id` | Public subnet ID |
-| `private_subnet_id` | Private subnet ID |
-| `runner_subnet_id` | Runner subnet ID |
-| `runner_role_arn` | Runner instance role ARN |
-| `runner_instance_profile_arn` | Runner instance profile ARN |
-| `runner_asg_name` | Runner Auto Scaling Group name |
 
 ## License
 
