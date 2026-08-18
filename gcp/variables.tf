@@ -143,6 +143,12 @@ variable "gke_node_pool_sa_email" {
   description = "Email of an existing GKE node pool service account. If provided, skips creating one."
 }
 
+variable "runner_enabled" {
+  type        = bool
+  default     = true
+  description = "Whether to provision the runner VM (instance template, managed instance group). Set to false to skip the runner and only create networking, IAM, and secrets."
+}
+
 variable "runner_machine_type" {
   type        = string
   default     = "e2-standard-4"

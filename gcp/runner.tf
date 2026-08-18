@@ -1,4 +1,6 @@
 resource "google_compute_instance_template" "runner" {
+  count = var.runner_enabled ? 1 : 0
+
   name_prefix  = "${local.prefix}-runner-"
   machine_type = var.runner_machine_type
   region       = local.region
@@ -47,13 +49,15 @@ resource "google_compute_instance_template" "runner" {
 }
 
 resource "google_compute_instance_group_manager" "runner" {
+  count = var.runner_enabled ? 1 : 0
+
   name               = "${local.prefix}-runner"
   base_instance_name = "${local.prefix}-runner"
   zone               = "${local.region}-a"
   target_size        = 1
 
   version {
-    instance_template = google_compute_instance_template.runner.self_link
+    instance_template = google_compute_instance_template.runner[0].self_link
   }
 
   update_policy {
