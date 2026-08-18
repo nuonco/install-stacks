@@ -108,3 +108,7 @@ output "custom_nested_stacks" {
   value       = local.custom_stack_outputs
   description = "Outputs of curated custom stacks, keyed by stack name."
 }
+
+output "runner_enabled" {
+  value = var.runner_enabled
+}
