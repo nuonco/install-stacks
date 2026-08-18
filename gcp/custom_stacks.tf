@@ -13,10 +13,10 @@ module "custom_bucket" {
   source   = "./modules/bucket"
   for_each = { for k, v in var.custom_stacks : k => v if v.module == "bucket" }
 
-  nuon_install_id = var.nuon_install_id
+  nuon_install_id = local.nuon_install_id
   name            = each.key
-  gcp_project_id  = var.gcp_project_id
-  gcp_region      = var.gcp_region
+  gcp_project_id  = local.gcp_project_id
+  gcp_region      = local.gcp_region
   parameters      = each.value.parameters
 }
 

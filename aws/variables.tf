@@ -47,8 +47,8 @@ variable "runner_enabled" {
 
 variable "runner_instance_type" {
   type        = string
-  default     = "t3.medium"
-  description = "EC2 instance type for the Nuon runner instance. Override with a larger type (e.g. t3.large) for installs with heavy build jobs."
+  default     = ""
+  description = "Optional override for the EC2 instance type of the Nuon runner instance. When empty, the type is read from the stack_config data source (Nuon app runner config), falling back to t3a.medium."
 }
 
 ##

@@ -71,7 +71,7 @@ data "aws_iam_policy_document" "runner_inline" {
       "secretsmanager:DescribeSecret",
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:nuon/${local.prefix}/telemetry-export-config-*",
+      "arn:aws:secretsmanager:${local.region}:${data.aws_caller_identity.current.account_id}:secret:nuon/${local.prefix}/telemetry-export-config-*",
     ]
   }
 

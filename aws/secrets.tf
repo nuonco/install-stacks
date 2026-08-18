@@ -60,7 +60,7 @@ resource "aws_secretsmanager_secret_version" "customer" {
 ###############################################################################
 
 resource "aws_secretsmanager_secret" "telemetry_export_config" {
-  name                    = "nuon/${var.nuon_install_id}/telemetry-export-config"
+  name                    = "nuon/${local.nuon_install_id}/telemetry-export-config"
   recovery_window_in_days = 0
   tags                    = local.tags
 }

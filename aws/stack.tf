@@ -38,9 +38,14 @@ locals {
   # customer-supplied region: new object, else legacy flat var, else data source
   region = var.aws != null ? var.aws.region : (var.aws_region != "" ? var.aws_region : (local.cfg_present ? data.stack_config.this[0].aws.region : ""))
 
-  # machine type from the data source (Nuon app runner config) when non-empty,
-  # else the platform default (also covers a ctl-api that doesn't yet serve it).
-  runner_machine_type = local.cfg_present && data.stack_config.this[0].aws.runner_machine_type != "" ? data.stack_config.this[0].aws.runner_machine_type : "t3a.medium"
+  # machine type: customer override wins, else the data source (Nuon app runner
+  # config) when non-empty, else the platform default (also covers a ctl-api
+  # that doesn't yet serve it).
+  runner_machine_type = (
+    var.runner_instance_type != "" ? var.runner_instance_type :
+    local.cfg_present && data.stack_config.this[0].aws.runner_machine_type != "" ? data.stack_config.this[0].aws.runner_machine_type :
+    "t3a.medium"
+  )
 
   # control-plane accounts allowed to assume the operation roles
   nuon_support_iam_role_arns = length(var.nuon_support_iam_role_arns) > 0 ? var.nuon_support_iam_role_arns : (local.cfg_present ? data.stack_config.this[0].aws.nuon_support_iam_role_arns : [])
