@@ -33,6 +33,7 @@ locals {
     gke_node_pool_sa_unique_id = var.gke_node_pool_sa_email == "" && local.create_gke_node_pool_sa ? google_service_account.gke_nodes[0].unique_id : ""
     install_inputs             = var.install_inputs
     custom_nested_stacks       = local.custom_stack_outputs
+    runner_enabled             = var.runner_enabled
   }, local.all_secret_names)
 }
 
