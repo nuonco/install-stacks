@@ -14,6 +14,13 @@
     "customData": {
       "type": "string"
     },
+    "runnerVmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D2s_v5",
+      "metadata": {
+        "description": "VM size for the runner VMSS. Default is 2 vCPU / 8 GiB. Fall back to Standard_D2s_v4 (78/78 region catalog coverage) then Standard_D2s_v3 if the deployment fails with SkuNotAvailable."
+      }
+    },
     "commonTags": {
       "type": "object"
     },
@@ -33,7 +40,7 @@
       "location": "[parameters('location')]",
       "tags": "[parameters('commonTags')]",
       "sku": {
-        "name": "Standard_D2s_v3",
+        "name": "[parameters('runnerVmSize')]",
         "tier": "Standard",
         "capacity": 1
       },
