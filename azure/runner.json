@@ -23,6 +23,13 @@
       "metadata": {
         "description": "Map of user-assigned managed identity resourceIds to attach to the runner VMSS (Nuon per-operation identities). Empty => system-assigned only."
       }
+    },
+    "runnerVmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D2s_v5",
+      "metadata": {
+        "description": "VM size for the runner VMSS. Nuon injects the app runner config's instance_type, or the platform default, when it renders the stack."
+      }
     }
   },
   "resources": [
@@ -33,7 +40,7 @@
       "location": "[parameters('location')]",
       "tags": "[parameters('commonTags')]",
       "sku": {
-        "name": "Standard_D2s_v3",
+        "name": "[parameters('runnerVmSize')]",
         "tier": "Standard",
         "capacity": 1
       },
