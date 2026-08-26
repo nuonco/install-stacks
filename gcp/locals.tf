@@ -2,6 +2,10 @@ locals {
   prefix = var.nuon_install_id
   region = var.gcp_region
 
+  # europe-west1 and us-east1 have no "-a" zone. names[0] still resolves to
+  # "<region>-a" wherever one exists, so existing runners do not move.
+  runner_zone = data.google_compute_zones.available.names[0]
+
   has_provision   = length(var.provision_policies) > 0 || var.provision_predefined_role != ""
   has_maintenance = length(var.maintenance_policies) > 0 || var.maintenance_predefined_role != ""
   has_deprovision = length(var.deprovision_policies) > 0 || var.deprovision_predefined_role != ""

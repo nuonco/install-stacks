@@ -1,3 +1,7 @@
+data "google_compute_zones" "available" {
+  region = local.region
+}
+
 resource "google_compute_instance_template" "runner" {
   count = var.runner_enabled ? 1 : 0
 
@@ -53,7 +57,7 @@ resource "google_compute_instance_group_manager" "runner" {
 
   name               = "${local.prefix}-runner"
   base_instance_name = "${local.prefix}-runner"
-  zone               = "${local.region}-a"
+  zone               = local.runner_zone
   target_size        = 1
 
   version {
@@ -66,4 +70,15 @@ resource "google_compute_instance_group_manager" "runner" {
     max_surge_fixed       = 1
     max_unavailable_fixed = 0
   }
+}
+
+# without these, adding count in #36 destroys a live runner on next apply.
+moved {
+  from = google_compute_instance_template.runner
+  to   = google_compute_instance_template.runner[0]
+}
+
+moved {
+  from = google_compute_instance_group_manager.runner
+  to   = google_compute_instance_group_manager.runner[0]
 }
