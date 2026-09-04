@@ -42,6 +42,19 @@ The values for all required inputs will be provided by the control plane.
 > [!NOTE]
 > GCP does not require a region or project ID to be provided at install creation time. The customer may have to provide these themselves when running the stack.
 
+### GCP custom stack catalog
+
+The legacy GCP stack supports these curated child modules. Each module can also be fetched directly with a Terraform go-getter source such as `github.com/nuonco/install-stacks//gcp/modules/dns`.
+
+| Module            | Parameters                                               | Outputs                                   |
+| ----------------- | -------------------------------------------------------- | ----------------------------------------- |
+| `bucket`          | `location`, `force_destroy`, `versioning`                | `name`, `url`, `self_link`                |
+| `dns`             | `dns_name`, `visibility`, `description`, `force_destroy` | `name`, `name_servers`, `managed_zone_id` |
+| `kms`             | `location`, `rotation_period`                            | `id`, `key_ring`, `name`                  |
+| `service_account` | `display_name`, `description`                            | `email`, `unique_id`, `name`              |
+
+An empty `custom_stacks` map creates no child resources and reports an empty `custom_nested_stacks` map. Private DNS zones are wired to the install VPC. KMS resources use a state-backed suffix because GCP retains key rings and keys after Terraform destroy.
+
 ## What the stack must provision
 
 ### Network
