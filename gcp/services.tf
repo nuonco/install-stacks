@@ -75,3 +75,11 @@ resource "google_project_service" "storage" {
   service            = "storage.googleapis.com"
   disable_on_destroy = false
 }
+
+resource "google_project_service" "cloud_kms" {
+  count = anytrue([for stack in values(var.custom_stacks) : stack.module == "kms"]) ? 1 : 0
+
+  project            = var.gcp_project_id
+  service            = "cloudkms.googleapis.com"
+  disable_on_destroy = false
+}

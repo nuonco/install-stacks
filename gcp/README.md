@@ -26,10 +26,24 @@ For more information about the Nuon runner, see the [The Nuon runner](../docs/th
   - **Custom service accounts** – optional app-operation roles, same shape and gating as break-glass roles.
   - **GKE node pool service account** – a least-privilege SA for GKE nodes (logging, monitoring, Artifact Registry read), created by default; pass `gke_node_pool_sa_email` to use an existing one instead, or set `has_gke_node_pool = false` to skip it.
 - **Secrets** (`secrets.tf`) – Secret Manager entries named `<install-id>-<name>` for auto-generated secrets (63-char random values) and customer-provided secrets, plus an **empty** `<install-id>-telemetry-export-config` secret whose value the customer uploads out-of-band (see [Telemetry export](../docs/the-nuon-runner.md#telemetry-export-optional)).
+- **Custom stacks** (`custom_stacks.tf`) – Instantiates supported curated modules selected by the app config. Module parameters are validated before apply, and outputs are reported under `custom_nested_stacks.<name>.outputs`.
 - **Phone home** (`phone_home.tf`) – A `local-exec` provisioner that POSTs provisioning results (outputs, install inputs) back to Nuon on every apply.
 
 > [!NOTE]
 > Because service account IDs are capped at 30 characters and don't support labels, the break-glass and custom SAs are named by a deterministic hash of the install ID and role name; the legible role name lives in the SA's display name and description.
+
+## Custom stack catalog
+
+| Module            | Parameters                                               | Outputs                                   |
+| ----------------- | -------------------------------------------------------- | ----------------------------------------- |
+| `bucket`          | `location`, `force_destroy`, `versioning`                | `name`, `url`, `self_link`                |
+| `dns`             | `dns_name`, `visibility`, `description`, `force_destroy` | `name`, `name_servers`, `managed_zone_id` |
+| `kms`             | `location`, `rotation_period`                            | `id`, `key_ring`, `name`                  |
+| `service_account` | `display_name`, `description`                            | `email`, `unique_id`, `name`              |
+
+An empty `custom_stacks` map is an explicit no-op and creates no curated-module resources. Private DNS zones attach to this stack's VPC automatically.
+
+Cloud KMS key rings and keys cannot be deleted from GCP. The `kms` module uses a state-backed random suffix so destroying and re-applying the stack does not fail because a retained name already exists. Previously created KMS resources remain in the project, and their output IDs are not stable across destroy and re-apply.
 
 ## Network topology
 
