@@ -34,6 +34,7 @@ locals {
     install_inputs             = var.install_inputs
     custom_nested_stacks       = local.custom_stack_outputs
     runner_enabled             = var.runner_enabled
+    telemetry_endpoint         = local.telemetry_endpoint
   }, local.all_secret_names)
 }
 
@@ -44,6 +45,9 @@ resource "null_resource" "phone_home" {
     google_project_service.iam_credentials,
     google_project_service.cloud_resource_manager,
     google_compute_instance_group_manager.runner,
+    google_compute_forwarding_rule.telemetry,
+    google_compute_firewall.telemetry_health_check,
+    google_compute_firewall.allow_internal,
     google_service_account.runner,
     google_service_account.provision,
     google_service_account.maintenance,
