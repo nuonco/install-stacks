@@ -61,28 +61,18 @@ Cloud KMS key rings and keys cannot be deleted from GCP. The `kms` module uses a
 
 ## Private telemetry ingress (optional)
 
-Set `enable_telemetry_ingress = true` in a customer-owned `.tfvars` file and pass it with `terraform apply -var-file=telemetry.tfvars`, or use `terraform apply -var='enable_telemetry_ingress=true'`. It defaults to `false` and takes effect only when `runner_enabled` is also `true`.
+Set `enable_telemetry_ingress = true` to create a private OTLP/HTTP load balancer on port 4318. Defaults to `false`; requires `runner_enabled = true` and separate enablement of Nuon's install telemetry setting.
 
-The stack creates an internal passthrough Network Load Balancer on TCP/4318 backed by the existing runner managed instance group. A reserved internal IP in the runner subnet keeps the endpoint stable across runner VM replacements. Clients must be in the same region. No public IP or DNS zone is created; load-balancer and IP resources incur the usual GCP charges.
+Clients must be in the same region and allowed by the existing internal firewall (`10.128.0.0/16` by default). The endpoint uses plaintext HTTP without authentication.
 
-`terraform output -raw telemetry_endpoint` returns `http://<internal-ip>:4318`. The same `telemetry_endpoint` is reported to Nuon through phone-home, so components can use:
+Read the URL with `terraform output -raw telemetry_endpoint`, or reference it in components:
 
 ```toml
 OTEL_EXPORTER_OTLP_PROTOCOL = "http/protobuf"
 OTEL_EXPORTER_OTLP_ENDPOINT = "{{ .nuon.install_stack.outputs.telemetry_endpoint }}"
 ```
 
-This is plaintext private OTLP/HTTP, without producer authentication. It uses the stack's existing `10.128.0.0/16` internal-access rule; the only new firewall rule permits Google health checks on runner TCP/4318. Producers outside that source range, including GKE pods that retain addresses outside it, need an appropriate existing network rule or source NAT. This option does not broaden producer access.
-
-Enable the runner's vendor telemetry Collector separately through Nuon's install telemetry setting. Creating this endpoint does not start the Collector, change relay configuration, or alter audit export. The load balancer checks TCP/4318, but that health check is not attached to managed-instance-group auto-healing: a stopped Collector must not replace the runner.
-
-Disabling ingress removes its load balancer, reserved IP, and health-check resources and reports an empty endpoint; `runner_enabled = false` also suppresses them. Disabling ingress does not close pre-existing direct network access to the runner. Re-enabling it may allocate a different IP, so consume the stack output rather than hard-coding an address.
-
-These settings apply to this `gcp/` module; they do not add support to the separately distributed `nuonco/stack/gcp` registry module.
-
-### Local validation
-
-Run `terraform init -backend=false`, `terraform validate`, and `terraform test` from `gcp/`. Use Terraform 1.14+ for the tests, which use plan-time mock overrides; they create no cloud resources and do not execute phone-home.
+The URL is stable across runner replacements and empty when ingress or the runner is disabled.
 
 ## Authentication
 
