@@ -59,9 +59,9 @@ Cloud KMS key rings and keys cannot be deleted from GCP. The `kms` module uses a
 - All subnets have **Private Google Access** enabled, so instances without external IPs can still reach Google APIs (Secret Manager, Compute, Artifact Registry) directly.
 - The runner requires no inbound connectivity; for the outbound destinations it must reach, see [The Nuon runner → Network requirements](../docs/the-nuon-runner.md#network-requirements).
 
-## Private telemetry ingress (optional)
+## Private telemetry ingress
 
-Set `enable_telemetry_ingress = true` to create a private OTLP/HTTP load balancer on port 4318. Defaults to `false`; requires `runner_enabled = true` and separate enablement of Nuon's install telemetry setting.
+A private OTLP/HTTP load balancer on port 4318 is created by default when `runner_enabled = true`. Set `enable_telemetry_ingress = false` to opt out. Nuon's install telemetry setting must also be enabled for collection.
 
 Clients must be in the same region and allowed by the existing internal firewall (`10.128.0.0/16` by default). The endpoint uses plaintext HTTP without authentication.
 
