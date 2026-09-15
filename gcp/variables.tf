@@ -151,8 +151,8 @@ variable "runner_enabled" {
 
 variable "enable_telemetry_ingress" {
   type        = bool
-  default     = false
-  description = "Expose a private OTLP/HTTP endpoint on port 4318 for the runner Collector. Requires runner_enabled; does not enable the Collector itself."
+  default     = true
+  description = "Expose a private OTLP/HTTP endpoint on port 4318 for the runner Collector. Set to false to disable. Requires runner_enabled; does not enable the Collector itself."
 }
 
 variable "runner_machine_type" {
