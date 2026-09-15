@@ -30,6 +30,10 @@
       "metadata": {
         "description": "VM size for the runner VMSS. Nuon injects the app runner config's instance_type, or the platform default, when it renders the stack."
       }
+    },
+    "enableTelemetryIngress": {
+      "type": "bool",
+      "defaultValue": true
     }
   },
   "resources": [
@@ -39,6 +43,9 @@
       "name": "[format('{0}-vmss', parameters('nuonInstallID'))]",
       "location": "[parameters('location')]",
       "tags": "[parameters('commonTags')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/loadBalancers', format('{0}-telemetry', parameters('nuonInstallID')))]"
+      ],
       "sku": {
         "name": "[parameters('runnerVmSize')]",
         "tier": "Standard",
@@ -102,7 +109,8 @@
                       "properties": {
                         "subnet": {
                           "id": "[parameters('runnerSubnetId')]"
-                        }
+                        },
+                        "loadBalancerBackendAddressPools": "[if(parameters('enableTelemetryIngress'), createArray(createObject('id', resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-telemetry', parameters('nuonInstallID')), 'runner'))), createArray())]"
                       }
                     }
                   ]
@@ -131,6 +139,68 @@
           }
         }
       }
+    },
+    {
+      "condition": "[parameters('enableTelemetryIngress')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}-telemetry', parameters('nuonInstallID'))]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('commonTags')]",
+      "sku": {
+        "name": "Standard",
+        "tier": "Regional"
+      },
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "telemetry",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('runnerSubnetId')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "runner"
+          }
+        ],
+        "probes": [
+          {
+            "name": "otlp",
+            "properties": {
+              "protocol": "Tcp",
+              "port": 4318,
+              "intervalInSeconds": 5,
+              "numberOfProbes": 2
+            }
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "otlp",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', format('{0}-telemetry', parameters('nuonInstallID')), 'telemetry')]"
+              },
+              "backendAddressPool": {
+                "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-telemetry', parameters('nuonInstallID')), 'runner')]"
+              },
+              "probe": {
+                "id": "[resourceId('Microsoft.Network/loadBalancers/probes', format('{0}-telemetry', parameters('nuonInstallID')), 'otlp')]"
+              },
+              "protocol": "Tcp",
+              "frontendPort": 4318,
+              "backendPort": 4318,
+              "disableOutboundSnat": true,
+              "enableFloatingIP": false
+            }
+          }
+        ]
+      }
     }
   ],
   "outputs": {
@@ -141,6 +211,10 @@
     "vmssPrincipalId": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Compute/virtualMachineScaleSets', format('{0}-vmss', parameters('nuonInstallID'))), '2023-03-01', 'full').identity.principalId]"
+    },
+    "telemetryEndpoint": {
+      "type": "string",
+      "value": "[if(parameters('enableTelemetryIngress'), format('http://{0}:4318', first(reference(resourceId('Microsoft.Network/loadBalancers', format('{0}-telemetry', parameters('nuonInstallID'))), '2023-09-01').frontendIPConfigurations).properties.privateIPAddress), '')]"
     }
   }
 }

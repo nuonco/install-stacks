@@ -75,6 +75,13 @@ The exact layout is up to the template, but all templates must fulfill the follo
 
 A host in the runner subnet that boots the runner. The full host contract (tags, instance profile, init script, outbound destinations) is in [The Nuon runner](the-nuon-runner.md).
 
+The Azure runner ARM template exposes a private OTLP/HTTP load balancer on port 4318 by default. Set
+`enableTelemetryIngress=false` to disable backend attachment and return an empty `telemetryEndpoint` output. Nuon
+passes the toggle through and reports the endpoint as `install_stack.outputs.telemetry_endpoint`; older custom runner
+templates without this contract remain supported. The subnet must permit VNet traffic and Azure load-balancer probes,
+and retain explicit outbound access through NAT or a firewall. Existing VMSS instances use manual upgrades and must be
+updated or rolled to receive a changed backend-pool attachment. Telemetry collection/export is enabled separately.
+
 ### Operation roles
 
 The runner assumes one of the provisioned roles for every job it runs.
