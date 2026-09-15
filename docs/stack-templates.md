@@ -75,12 +75,24 @@ The exact layout is up to the template, but all templates must fulfill the follo
 
 A host in the runner subnet that boots the runner. The full host contract (tags, instance profile, init script, outbound destinations) is in [The Nuon runner](the-nuon-runner.md).
 
-The Azure runner ARM template exposes a private OTLP/HTTP load balancer on port 4318 by default. Set
-`enableTelemetryIngress=false` to disable backend attachment and return an empty `telemetryEndpoint` output. Nuon
-passes the toggle through and reports the endpoint as `install_stack.outputs.telemetry_endpoint`; older custom runner
-templates without this contract remain supported. The subnet must permit VNet traffic and Azure load-balancer probes,
-and retain explicit outbound access through NAT or a firewall. Existing VMSS instances use manual upgrades and must be
-updated or rolled to receive a changed backend-pool attachment. Telemetry collection/export is enabled separately.
+#### Azure telemetry ingress lifecycle
+
+The Azure runner ARM template exposes a private OTLP/HTTP load balancer on port 4318 by default. Nuon passes
+`enableTelemetryIngress` through and reports `telemetryEndpoint` as `install_stack.outputs.telemetry_endpoint`;
+older custom runner templates without this contract remain supported. The subnet must permit producer traffic and
+Azure load-balancer probes, and retain explicit outbound access through NAT or a firewall. Collection/export is
+enabled separately from this network endpoint.
+
+- **Apply to an existing install:** the VMSS uses `upgradePolicy: Manual`. After applying the template, explicitly
+  upgrade existing instances to the latest model or roll them, coordinating with active runner jobs. A successful
+  deployment and populated endpoint do not mean existing instances have joined the backend pool. Verify backend
+  health and telemetry delivery from the producer network afterward. New instances receive the current model.
+- **Disable:** apply `enableTelemetryIngress=false`, then upgrade or roll existing instances to remove their backend
+  attachment. The output becomes empty immediately, but old instances can remain reachable until upgraded.
+  Incremental ARM deployments do not delete the existing load balancer; explicitly delete it after verifying backend
+  detachment to stop its ongoing charges. Stop or reconfigure producers that still use the old endpoint.
+- **Teardown:** remove the load balancer as part of actual resource cleanup, not just deployment-history deletion.
+  Verify no telemetry load balancer remains; deleting an ARM deployment record does not delete its resources.
 
 ### Operation roles
 
