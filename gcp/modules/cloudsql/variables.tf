@@ -1,0 +1,58 @@
+variable "nuon_install_id" {
+  type = string
+}
+
+variable "name" {
+  type = string
+}
+
+variable "gcp_project_id" {
+  type = string
+}
+
+variable "gcp_region" {
+  type = string
+}
+
+variable "gcp_network_id" {
+  type = string
+}
+
+variable "parameters" {
+  type    = map(string)
+  default = {}
+
+  validation {
+    condition = length(setsubtract(keys(var.parameters), [
+      "availability_type",
+      "database_version",
+      "db_name",
+      "db_password",
+      "db_user",
+      "deletion_protection",
+      "disk_size",
+      "tier",
+    ])) == 0
+    error_message = "parameters supports only availability_type, database_version, db_name, db_password, db_user, deletion_protection, disk_size, and tier."
+  }
+
+  validation {
+    condition     = lookup(var.parameters, "db_password", "") != ""
+    error_message = "parameters.db_password must be set."
+  }
+
+  validation {
+    condition     = contains(["false", "true"], lookup(var.parameters, "deletion_protection", "false"))
+    error_message = "parameters.deletion_protection must be \"true\" or \"false\"."
+  }
+
+  validation {
+    condition     = contains(["REGIONAL", "ZONAL"], lookup(var.parameters, "availability_type", "ZONAL"))
+    error_message = "parameters.availability_type must be \"REGIONAL\" or \"ZONAL\"."
+  }
+
+  validation {
+    condition     = try(tonumber(lookup(var.parameters, "disk_size", "20")) > 0, false)
+    error_message = "parameters.disk_size must be a positive number."
+  }
+}
