@@ -37,14 +37,14 @@ For more information about the Nuon runner, see the [The Nuon runner](../docs/th
 | Module            | Parameters                                               | Outputs                                   |
 | ----------------- | -------------------------------------------------------- | ----------------------------------------- |
 | `bucket`          | `location`, `force_destroy`, `versioning`                | `name`, `url`, `self_link`                |
-| `cloudsql`        | `tier`, `database_version`, `disk_size`, `db_name`, `db_user`, `db_password`, `deletion_protection`, `availability_type` | `DBEndpoint`, `DBPort`, `DBUser`, `DBName`, `connection_name`, `instance_name` |
+| `cloudsql`        | `tier`, `database_version`, `disk_size`, `db_name`, `db_user`, `deletion_protection`, `availability_type` | `DBEndpoint`, `DBPort`, `DBUser`, `DBName`, `connection_name`, `instance_name` |
 | `dns`             | `dns_name`, `visibility`, `description`, `force_destroy` | `name`, `name_servers`, `managed_zone_id` |
 | `kms`             | `location`, `rotation_period`                            | `id`, `key_ring`, `name`                  |
 | `service_account` | `display_name`, `description`                            | `email`, `unique_id`, `name`              |
 
 An empty `custom_stacks` map is an explicit no-op and creates no curated-module resources. Private DNS zones attach to this stack's VPC automatically.
 
-Cloud SQL instances use private IP only. When at least one `cloudsql` stack is configured, the root module creates one private service access connection for the install VPC. `db_password` is required and is never included in the module outputs. The default `DBName` is `postgres`, which Cloud SQL already creates with the instance; a `google_sql_database` resource is added only when `db_name` is a different non-empty value.
+Cloud SQL instances use private IP only. When at least one `cloudsql` stack is configured, the root module creates one private service access connection for the install VPC. The database password is read from the install's `db_password` Secret Manager secret (auto-generated or customer-provided) and is never a stack parameter or module output. The default `DBName` is `postgres`, which Cloud SQL already creates with the instance; a `google_sql_database` resource is added only when `db_name` is a different non-empty value.
 
 Cloud KMS key rings and keys cannot be deleted from GCP. The `kms` module uses a state-backed random suffix so destroying and re-applying the stack does not fail because a retained name already exists. Previously created KMS resources remain in the project, and their output IDs are not stable across destroy and re-apply.
 

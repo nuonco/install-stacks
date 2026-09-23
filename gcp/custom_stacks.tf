@@ -17,6 +17,10 @@ variable "custom_stacks" {
 
 locals {
   custom_cloudsql_stacks = { for k, v in var.custom_stacks : k => v if v.module == "cloudsql" }
+  cloudsql_db_password_sources = merge(
+    { for k, v in google_secret_manager_secret_version.auto_generate : k => v.secret_data },
+    { for k, v in google_secret_manager_secret_version.customer : k => v.secret_data },
+  )
 }
 
 resource "google_compute_global_address" "private_services" {
@@ -68,7 +72,8 @@ module "custom_cloudsql" {
   gcp_project_id  = var.gcp_project_id
   gcp_region      = var.gcp_region
   gcp_network_id  = google_compute_network.main.id
-  parameters      = each.value.parameters
+  db_password     = local.cloudsql_db_password_sources["db_password"]
+  parameters      = { for k, v in each.value.parameters : k => v if k != "db_password" }
 }
 
 module "custom_dns" {
