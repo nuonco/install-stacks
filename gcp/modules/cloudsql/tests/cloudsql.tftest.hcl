@@ -10,9 +10,7 @@ run "defaults" {
     gcp_project_id  = "example-project"
     gcp_region      = "us-central1"
     gcp_network_id  = "projects/example-project/global/networks/install"
-    parameters = {
-      db_password = "example-password"
-    }
+    db_password     = "example-password"
   }
 
   assert {
@@ -70,11 +68,11 @@ run "parameter_overrides" {
     gcp_project_id  = "example-project"
     gcp_region      = "us-central1"
     gcp_network_id  = "projects/example-project/global/networks/install"
+    db_password     = "example-password"
     parameters = {
       availability_type   = "REGIONAL"
       database_version    = "POSTGRES_15"
       db_name             = "application"
-      db_password         = "example-password"
       db_user             = "application"
       deletion_protection = "true"
       disk_size           = "50"
@@ -122,9 +120,9 @@ run "allows_empty_database_name" {
     gcp_project_id  = "example-project"
     gcp_region      = "us-central1"
     gcp_network_id  = "projects/example-project/global/networks/install"
+    db_password     = "example-password"
     parameters = {
-      db_name     = ""
-      db_password = "example-password"
+      db_name = ""
     }
   }
 
@@ -143,9 +141,10 @@ run "rejects_missing_password" {
     gcp_project_id  = "example-project"
     gcp_region      = "us-central1"
     gcp_network_id  = "projects/example-project/global/networks/install"
+    db_password     = ""
   }
 
-  expect_failures = [var.parameters]
+  expect_failures = [var.db_password]
 }
 
 run "rejects_unknown_parameters" {
@@ -157,9 +156,9 @@ run "rejects_unknown_parameters" {
     gcp_project_id  = "example-project"
     gcp_region      = "us-central1"
     gcp_network_id  = "projects/example-project/global/networks/install"
+    db_password     = "example-password"
     parameters = {
-      db_password = "example-password"
-      typo        = "true"
+      typo = "true"
     }
   }
 
@@ -175,9 +174,9 @@ run "rejects_invalid_values" {
     gcp_project_id  = "example-project"
     gcp_region      = "us-central1"
     gcp_network_id  = "projects/example-project/global/networks/install"
+    db_password     = "example-password"
     parameters = {
       availability_type   = "MULTI_REGION"
-      db_password         = "example-password"
       deletion_protection = "yes"
       disk_size           = "large"
     }
