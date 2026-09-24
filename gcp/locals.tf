@@ -2,9 +2,9 @@ locals {
   prefix = var.nuon_install_id
   region = var.gcp_region
 
-  has_provision   = length(var.provision_policies) > 0 || var.provision_predefined_role != ""
-  has_maintenance = length(var.maintenance_policies) > 0 || var.maintenance_predefined_role != ""
-  has_deprovision = length(var.deprovision_policies) > 0 || var.deprovision_predefined_role != ""
+  has_provision   = length(var.provision_policies) > 0 || var.provision_predefined_role != "" || length(local.provision_extra_predefined_roles) > 0
+  has_maintenance = length(var.maintenance_policies) > 0 || var.maintenance_predefined_role != "" || length(local.maintenance_extra_predefined_roles) > 0
+  has_deprovision = length(var.deprovision_policies) > 0 || var.deprovision_predefined_role != "" || length(local.deprovision_extra_predefined_roles) > 0
 
   # Filter to only enabled roles
   enabled_break_glass_roles = { for k, v in var.break_glass_roles : k => v if v.enabled }
@@ -50,6 +50,23 @@ locals {
       "${rk}:${pk}" => { role_key = rk, policy_name = pk, permissions = pv }
     }
   ]...)
+  provision_extra_predefined_roles   = setsubtract(toset(var.provision_predefined_roles), [var.provision_predefined_role])
+  maintenance_extra_predefined_roles = setsubtract(toset(var.maintenance_predefined_roles), [var.maintenance_predefined_role])
+  deprovision_extra_predefined_roles = setsubtract(toset(var.deprovision_predefined_roles), [var.deprovision_predefined_role])
+
+  custom_role_extra_predefined = merge([
+    for rk, rv in local.enabled_custom_roles : {
+      for pr in setsubtract(toset(rv.predefined_roles), [rv.predefined_role]) :
+      "${rk}:${pr}" => { role_key = rk, role = pr }
+    }
+  ]...)
+  break_glass_role_extra_predefined = merge([
+    for rk, rv in local.enabled_break_glass_roles : {
+      for pr in setsubtract(toset(rv.predefined_roles), [rv.predefined_role]) :
+      "${rk}:${pr}" => { role_key = rk, role = pr }
+    }
+  ]...)
+
   break_glass_policy_role_ids = {
     for k in keys(local.break_glass_role_policies) :
     k => "nuon_bg_${md5("break_glass/${local.prefix}/${k}")}"
