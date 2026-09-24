@@ -66,6 +66,12 @@ variable "provision_predefined_role" {
   description = "GCP predefined role to bind to the provision service account (e.g. roles/editor)."
 }
 
+variable "provision_predefined_roles" {
+  type        = list(string)
+  default     = []
+  description = "Every GCP predefined role for the provision service account. provision_predefined_role keeps its own binding; the rest bind separately."
+}
+
 variable "maintenance_policies" {
   type        = map(list(string))
   default     = {}
@@ -76,6 +82,12 @@ variable "maintenance_predefined_role" {
   type        = string
   default     = ""
   description = "GCP predefined role to bind to the maintenance service account (e.g. roles/editor)."
+}
+
+variable "maintenance_predefined_roles" {
+  type        = list(string)
+  default     = []
+  description = "Every GCP predefined role for the maintenance service account. maintenance_predefined_role keeps its own binding; the rest bind separately."
 }
 
 variable "deprovision_policies" {
@@ -90,11 +102,18 @@ variable "deprovision_predefined_role" {
   description = "GCP predefined role to bind to the deprovision service account (e.g. roles/editor)."
 }
 
+variable "deprovision_predefined_roles" {
+  type        = list(string)
+  default     = []
+  description = "Every GCP predefined role for the deprovision service account. deprovision_predefined_role keeps its own binding; the rest bind separately."
+}
+
 variable "break_glass_roles" {
   type = map(object({
-    policies        = map(list(string))
-    predefined_role = string
-    enabled         = bool
+    policies         = map(list(string))
+    predefined_role  = string
+    predefined_roles = optional(list(string), [])
+    enabled          = bool
   }))
   default     = {}
   description = "Break-glass roles. Each key is the role name. Disabled by default; only created when enabled=true."
@@ -102,9 +121,10 @@ variable "break_glass_roles" {
 
 variable "custom_roles" {
   type = map(object({
-    policies        = map(list(string))
-    predefined_role = string
-    enabled         = bool
+    policies         = map(list(string))
+    predefined_role  = string
+    predefined_roles = optional(list(string), [])
+    enabled          = bool
   }))
   default     = {}
   description = "Custom roles for app operations. Each key is the role name. Enabled by default."
