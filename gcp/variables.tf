@@ -130,6 +130,12 @@ variable "custom_roles" {
   description = "Custom roles for app operations. Each key is the role name. Enabled by default."
 }
 
+variable "runner_assumable_custom_roles" {
+  type        = list(string)
+  default     = []
+  description = "Keys of custom_roles the runner service account may impersonate (roles/iam.serviceAccountTokenCreator). Roles not listed are created but are not impersonable by the runner and are not reported in phone-home."
+}
+
 ##
 ## Secrets (provided via tfvars file)
 ##

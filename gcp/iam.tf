@@ -6,6 +6,13 @@ resource "google_service_account" "runner" {
   account_id   = "${substr(local.prefix, 0, 23)}-runner"
   display_name = "Nuon runner for ${local.prefix}"
 
+  lifecycle {
+    precondition {
+      condition     = alltrue([for k in var.runner_assumable_custom_roles : contains(keys(var.custom_roles), k)])
+      error_message = "runner_assumable_custom_roles entries must be keys of custom_roles."
+    }
+  }
+
   depends_on = [
     google_project_service.compute,
     google_project_service.secret_manager,
@@ -354,8 +361,10 @@ resource "google_project_iam_member" "custom_extra_predefined_role" {
   member   = "serviceAccount:${google_service_account.custom[each.value.role_key].email}"
 }
 
+# Only roles listed in runner_assumable_custom_roles are impersonable by the
+# runner; other custom SAs get no TokenCreator binding at all.
 resource "google_service_account_iam_member" "custom_token_creator" {
-  for_each           = local.enabled_custom_roles
+  for_each           = local.runner_assumable_custom_roles
   service_account_id = google_service_account.custom[each.key].name
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "serviceAccount:${google_service_account.runner.email}"

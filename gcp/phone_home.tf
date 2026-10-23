@@ -1,9 +1,9 @@
 locals {
   # Build SA email / uniqueId maps for phone-home payload
   break_glass_sa_emails     = { for k, v in google_service_account.break_glass : k => v.email }
-  custom_sa_emails          = { for k, v in google_service_account.custom : k => v.email }
+  custom_sa_emails          = { for k, _ in local.runner_assumable_custom_roles : k => google_service_account.custom[k].email }
   break_glass_sa_unique_ids = { for k, v in google_service_account.break_glass : k => v.unique_id }
-  custom_sa_unique_ids      = { for k, v in google_service_account.custom : k => v.unique_id }
+  custom_sa_unique_ids      = { for k, _ in local.runner_assumable_custom_roles : k => google_service_account.custom[k].unique_id }
 
   phone_home_payload = merge({
     request_type                     = "Create"

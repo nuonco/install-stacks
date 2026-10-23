@@ -10,6 +10,12 @@ locals {
   enabled_break_glass_roles = { for k, v in var.break_glass_roles : k => v if v.enabled }
   enabled_custom_roles      = { for k, v in var.custom_roles : k => v if v.enabled }
 
+  # Only these custom roles are impersonable by the runner and reported in
+  # phone-home; the rest stay internal to the stack.
+  runner_assumable_custom_roles = {
+    for k, v in local.enabled_custom_roles : k => v if contains(var.runner_assumable_custom_roles, k)
+  }
+
   # Service-account ids and custom-role ids for the dynamic roles.
   #
   # GCP service-account ids are capped at 30 chars and custom-role ids at 64,

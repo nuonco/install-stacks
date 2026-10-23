@@ -23,7 +23,7 @@ For more information about the Nuon runner, see the [The Nuon runner](../docs/th
     - **maintenance** – used by everything else (the default)
     - **deprovision** – used by deprovision workflows
   - **Break-glass service accounts** – optional, created from a map keyed by role name and gated by `enabled = true`.
-  - **Custom service accounts** – optional app-operation roles, same shape and gating as break-glass roles.
+  - **Custom service accounts** – optional app-operation roles, same shape and gating as break-glass roles. Only roles listed in `runner_assumable_custom_roles` get the runner `roles/iam.serviceAccountTokenCreator` grant and are reported in phone-home (`custom_sa_emails`); the rest are created but stay internal to the stack.
   - **GKE node pool service account** – a least-privilege SA for GKE nodes (logging, monitoring, Artifact Registry read), created by default; pass `gke_node_pool_sa_email` to use an existing one instead, or set `has_gke_node_pool = false` to skip it.
 - **Secrets** (`secrets.tf`) – Secret Manager entries named `<install-id>-<name>` for auto-generated secrets (63-char random values) and customer-provided secrets, plus an **empty** `<install-id>-telemetry-export-config` secret whose value the customer uploads out-of-band (see [Telemetry export](../docs/the-nuon-runner.md#telemetry-export-optional)).
 - **Custom stacks** (`custom_stacks.tf`) – Instantiates supported curated modules selected by the app config. Module parameters are validated before apply, and outputs are reported under `custom_nested_stacks.<name>.outputs`.

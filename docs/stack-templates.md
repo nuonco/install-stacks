@@ -106,7 +106,7 @@ The runner assumes one of the provisioned roles for every job it runs.
 
 Rules the template must follow:
 
-- **Trust policy**: each role must be assumable by (a) the `nuon_support_iam_role_arns` principals (fall back to the account root if the list is empty) and (b) the runner's own identity. On AWS this means an IAM trust policy naming both; on GCP the equivalent is `roles/iam.serviceAccountTokenCreator` grants on per-operation service accounts.
+- **Trust policy**: each role must be assumable by (a) the `nuon_support_iam_role_arns` principals (fall back to the account root if the list is empty) and (b) the runner's own identity. On AWS this means an IAM trust policy naming both; on GCP the equivalent is `roles/iam.serviceAccountTokenCreator` grants on per-operation service accounts. On GCP, custom roles are the exception: only those listed in `runner_assumable_custom_roles` are runner-impersonable and reported; unlisted custom roles stay internal to the stack.
 - **Permission shapes** — these differ per platform:
   - AWS: `inline_policy_document` (full policy JSON, preserves resource/condition scoping) takes precedence over `permissions` (a list of action strings, granted on all resources), and `managed_policy_arns` attach in addition.
   - GCP: `*_policies` (a map of policy name → list of permission strings, each becoming a project-level custom role) and `*_predefined_role` (e.g. `roles/editor`), both granted to the operation service account.

@@ -86,12 +86,12 @@ output "break_glass_sa_unique_ids" {
 
 output "custom_sa_emails" {
   value       = local.custom_sa_emails
-  description = "Map of custom role name to service account email."
+  description = "Map of runner-assumable custom role name to service account email."
 }
 
 output "custom_sa_unique_ids" {
   value       = local.custom_sa_unique_ids
-  description = "Map of custom role name to service account numeric uniqueId."
+  description = "Map of runner-assumable custom role name to service account numeric uniqueId."
 }
 
 output "install_inputs" {
