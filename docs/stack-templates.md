@@ -161,7 +161,7 @@ AWS:
 | `install_inputs`                                                                 | Echo of the customer inputs; back-fills install state                                                                  |
 | `custom_nested_stacks`                                                           | Map of custom stack name → `{ outputs = … }` for the curated child modules selected via `custom_stacks`                |
 
-The GCP equivalents are `project_id`, `region`, `network_name`/`network_id`, `*_subnet_name`, `runner_service_account_email`, `{provision,maintenance,deprovision}_sa_email`, `break_glass_sa_emails`, `custom_sa_emails`, plus the same `install_inputs`.
+The GCP equivalents are `project_id`, `region`, `network_name`/`network_id`, `*_subnet_name`, `runner_service_account_email`, `{provision,maintenance,deprovision}_sa_email`, `break_glass_sa_emails`, `custom_sa_emails`, `workload_identities`, plus the same `install_inputs`.
 
 Two GCP keys deserve extra care:
 

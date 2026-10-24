@@ -94,6 +94,11 @@ output "custom_sa_unique_ids" {
   description = "Map of custom role name to service account numeric uniqueId."
 }
 
+output "workload_identities" {
+  value       = local.workload_identities
+  description = "Map of workload identity name to its service account email and numeric uniqueId."
+}
+
 output "install_inputs" {
   value       = var.install_inputs
   description = "Customer-provided install inputs passed back to Nuon."
