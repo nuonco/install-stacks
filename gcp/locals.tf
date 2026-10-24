@@ -8,7 +8,10 @@ locals {
 
   # Filter to only enabled roles
   enabled_break_glass_roles = { for k, v in var.break_glass_roles : k => v if v.enabled }
-  enabled_custom_roles      = { for k, v in var.custom_roles : k => v if v.enabled }
+  enabled_custom_roles      = { for k, v in var.custom_roles : k => v if v.enabled && !contains(keys(var.workload_identities), k) }
+
+  enabled_workload_identities = { for k, v in var.workload_identities : k => v if v.enabled }
+  custom_service_accounts     = merge(local.enabled_custom_roles, local.enabled_workload_identities)
 
   # Service-account ids and custom-role ids for the dynamic roles.
   #
@@ -23,7 +26,7 @@ locals {
   # alnum + hyphen, no trailing hyphen — the "nc-"/"nbg-" prefix + hex satisfies
   # all of these. md5 is deterministic, so the ids are stable across applies.
   custom_account_ids = {
-    for k in keys(local.enabled_custom_roles) :
+    for k in keys(local.custom_service_accounts) :
     k => "nc-${substr(md5("custom/${local.prefix}/${k}"), 0, 24)}"
   }
   break_glass_account_ids = {
@@ -35,7 +38,7 @@ locals {
   # shape. Flattened to "{role key}:{policy name}" for_each keys; role ids use
   # the same hash scheme as the account ids above.
   custom_role_policies = merge([
-    for rk, rv in local.enabled_custom_roles : {
+    for rk, rv in local.custom_service_accounts : {
       for pk, pv in rv.policies :
       "${rk}:${pk}" => { role_key = rk, policy_name = pk, permissions = pv }
     }
@@ -55,7 +58,7 @@ locals {
   deprovision_extra_predefined_roles = setsubtract(toset(var.deprovision_predefined_roles), [var.deprovision_predefined_role])
 
   custom_role_extra_predefined = merge([
-    for rk, rv in local.enabled_custom_roles : {
+    for rk, rv in local.custom_service_accounts : {
       for pr in setsubtract(toset(rv.predefined_roles), [rv.predefined_role]) :
       "${rk}:${pr}" => { role_key = rk, role = pr }
     }

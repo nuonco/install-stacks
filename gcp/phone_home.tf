@@ -1,9 +1,13 @@
 locals {
   # Build SA email / uniqueId maps for phone-home payload
   break_glass_sa_emails     = { for k, v in google_service_account.break_glass : k => v.email }
-  custom_sa_emails          = { for k, v in google_service_account.custom : k => v.email }
   break_glass_sa_unique_ids = { for k, v in google_service_account.break_glass : k => v.unique_id }
-  custom_sa_unique_ids      = { for k, v in google_service_account.custom : k => v.unique_id }
+  custom_sa_emails          = { for k, v in google_service_account.custom : k => v.email if contains(keys(local.enabled_custom_roles), k) }
+  custom_sa_unique_ids      = { for k, v in google_service_account.custom : k => v.unique_id if contains(keys(local.enabled_custom_roles), k) }
+  workload_identities = {
+    for k, v in google_service_account.custom : k => { email = v.email, unique_id = v.unique_id }
+    if contains(keys(local.enabled_workload_identities), k)
+  }
 
   phone_home_payload = merge({
     request_type                     = "Create"
@@ -27,6 +31,7 @@ locals {
     break_glass_sa_unique_ids        = local.break_glass_sa_unique_ids
     custom_sa_emails                 = local.custom_sa_emails
     custom_sa_unique_ids             = local.custom_sa_unique_ids
+    workload_identities              = local.workload_identities
     gke_node_pool_sa_email = var.gke_node_pool_sa_email != "" ? var.gke_node_pool_sa_email : (
       local.create_gke_node_pool_sa ? google_service_account.gke_nodes[0].email : ""
     )
