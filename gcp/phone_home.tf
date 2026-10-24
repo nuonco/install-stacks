@@ -71,9 +71,13 @@ resource "null_resource" "phone_home" {
 
   provisioner "local-exec" {
     command = <<-EOT
-      curl -sf -X POST '${var.phone_home_url}' \
+      printf '%s' "$PHONE_HOME_PAYLOAD" | curl -sf -X POST "$PHONE_HOME_URL" \
         -H 'Content-Type: application/json' \
-        -d '${jsonencode(local.phone_home_payload)}'
+        --data-binary @-
     EOT
+    environment = {
+      PHONE_HOME_URL     = var.phone_home_url
+      PHONE_HOME_PAYLOAD = jsonencode(local.phone_home_payload)
+    }
   }
 }

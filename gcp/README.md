@@ -79,10 +79,10 @@ The URL is stable across runner replacements and empty when ingress or the runne
 
 ## Authentication
 
-On GCP, the runner authenticates with a **static API token**: the customer exports `TF_VAR_runner_api_token` (provided by the vendor) and the instance template's startup script passes it to the runner as `NUON_RUNNER_API_TOKEN`. See the [root README](../README.md#gcp) for usage.
+On GCP, the runner authenticates with its **instance identity**: no API token is provisioned. The init script runs `runner mng fetch-token`, which POSTs a Google-signed identity token to `/v1/runner-auth/gcp` and stores the minted token on the host.
 
 The bootstrap process is as follows.
 
-1. The startup script exports `NUON_RUNNER_ID`, `NUON_RUNNER_API_URL`, `NUON_RUNNER_API_TOKEN`, and `NUON_INSTALL_ID`, then downloads and runs the init script from `runner_init_script_url`, retrying until it succeeds (the script is idempotent).
+1. The startup script exports `NUON_RUNNER_ID`, `NUON_RUNNER_API_URL`, and `NUON_INSTALL_ID`, then downloads and runs the init script from `runner_init_script_url`, retrying until it succeeds (the script is idempotent).
 1. The same values are also set as instance metadata (`nuon_runner_id`, `nuon_runner_api_url`, `nuon_install_id`) — the GCP mirror of the AWS instance tags.
-1. The runner service account holds `compute.instances.get` so the control plane can independently read the instance's `nuon_runner_id` metadata when verifying the runner's identity (used by the newer `init-mng-v2` auth flow, where the runner fetches its own token and `runner_api_token` is not needed).
+1. The runner service account holds `compute.instances.get` so the control plane can independently read the instance's `nuon_runner_id` metadata when verifying the runner's identity.

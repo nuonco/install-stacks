@@ -36,7 +36,7 @@ The values for all required inputs will be provided by the control plane.
 | `secrets` / `auto_generate_secrets`                     | Secrets to store / generate                                                                                     |
 | `install_inputs`                                        | Customer-supplied input values, echoed back in phone-home                                                       |
 | `custom_stacks`                                         | Curated child modules selected by the app config; their outputs phone home under `custom_nested_stacks`         |
-| `runner_init_script_url`, `runner_api_token` (GCP)      | GCP only: the runner bootstrap script URL and the static runner API token (exported as `TF_VAR_runner_api_token`) |
+| `runner_init_script_url` (GCP)                          | GCP only: the runner bootstrap script URL                                                                       |
 | Deployment target (`aws_region`, GCP project/region, …) | Selected when the install is created                                                                            |
 
 > [!NOTE]
