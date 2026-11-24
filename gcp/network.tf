@@ -14,6 +14,15 @@ resource "google_compute_subnetwork" "public" {
   network                  = google_compute_network.main.id
   ip_cidr_range            = "10.128.0.0/24"
   private_ip_google_access = true
+
+  dynamic "log_config" {
+    for_each = var.subnet_flow_logs == null ? [] : [var.subnet_flow_logs]
+    content {
+      aggregation_interval = log_config.value.aggregation_interval
+      flow_sampling        = log_config.value.flow_sampling
+      metadata             = log_config.value.metadata
+    }
+  }
 }
 
 resource "google_compute_subnetwork" "private" {
@@ -22,6 +31,15 @@ resource "google_compute_subnetwork" "private" {
   network                  = google_compute_network.main.id
   ip_cidr_range            = "10.128.1.0/24"
   private_ip_google_access = true
+
+  dynamic "log_config" {
+    for_each = var.subnet_flow_logs == null ? [] : [var.subnet_flow_logs]
+    content {
+      aggregation_interval = log_config.value.aggregation_interval
+      flow_sampling        = log_config.value.flow_sampling
+      metadata             = log_config.value.metadata
+    }
+  }
 }
 
 resource "google_compute_subnetwork" "runner" {
@@ -30,6 +48,15 @@ resource "google_compute_subnetwork" "runner" {
   network                  = google_compute_network.main.id
   ip_cidr_range            = "10.128.2.0/24"
   private_ip_google_access = true
+
+  dynamic "log_config" {
+    for_each = var.subnet_flow_logs == null ? [] : [var.subnet_flow_logs]
+    content {
+      aggregation_interval = log_config.value.aggregation_interval
+      flow_sampling        = log_config.value.flow_sampling
+      metadata             = log_config.value.metadata
+    }
+  }
 }
 
 resource "google_compute_router" "main" {

@@ -179,6 +179,16 @@ variable "enable_telemetry_ingress" {
   description = "Expose a private OTLP/HTTP endpoint on port 4318 for the runner Collector. Set to false to disable. Requires runner_enabled; does not enable the Collector itself."
 }
 
+variable "subnet_flow_logs" {
+  type = object({
+    aggregation_interval = optional(string, "INTERVAL_5_SEC")
+    flow_sampling        = optional(number, 0.5)
+    metadata             = optional(string, "INCLUDE_ALL_METADATA")
+  })
+  default     = null
+  description = "VPC flow logs for the public, private and runner subnets. null (the default) leaves them off. {} turns them on with GCP's defaults; set the fields to reduce log volume, e.g. { aggregation_interval = \"INTERVAL_15_MIN\", flow_sampling = 0.1, metadata = \"EXCLUDE_ALL_METADATA\" }."
+}
+
 variable "runner_machine_type" {
   type        = string
   default     = "e2-standard-4"

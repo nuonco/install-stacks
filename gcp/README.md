@@ -13,7 +13,7 @@ For more information about the Nuon runner, see the [The Nuon runner](../docs/th
 ## Resources
 
 - **APIs** (`services.tf`) – Enables the project services the stack and its workloads need (Compute, IAM, Secret Manager, GKE, Cloud DNS, Artifact Registry, Cloud SQL, Storage, and more); none are disabled on destroy.
-- **VPC & subnets** (`network.tf`) – A dedicated custom-mode VPC with regional public, private, and runner subnets (all with Private Google Access enabled), a Cloud Router, and a Cloud NAT covering all subnets for outbound internet access.
+- **VPC & subnets** (`network.tf`) – A dedicated custom-mode VPC with regional public, private, and runner subnets (all with Private Google Access enabled), a Cloud Router, and a Cloud NAT covering all subnets for outbound internet access. VPC flow logs on the three subnets are off unless `subnet_flow_logs` is set.
 - **Firewall rules** (`network.tf`) – All TCP/UDP/ICMP traffic allowed from `10.128.0.0/16` (a superset of the three subnets); all egress allowed to `0.0.0.0/0`. No inbound-from-internet rule exists.
 - **Runner** (`runner.tf`) – An instance template + single-instance managed instance group (first zone in `gcp_region`, proactive replace on update) running Ubuntu 24.04 on an `e2-standard-4` (configurable via `runner_machine_type`) with a 30 GB pd-balanced boot disk and no external IP. The instance runs as the runner service account with `cloud-platform` scope. The startup script passes the runner its configuration as environment variables; the same values are mirrored in instance metadata for identity verification (see [Authentication](#authentication)). Set `runner_enabled = false` to skip these resources.
 - **IAM** (`iam.tf`) –
